@@ -1,0 +1,13 @@
+
+// An Image
+
+syntax = "proto3";
+
+package design.content;
+
+option csharp_namespace = "DesignModel.ContentTypes";
+
+message Image
+{
+  // To be defined
+}

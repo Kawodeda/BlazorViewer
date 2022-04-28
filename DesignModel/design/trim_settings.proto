@@ -1,0 +1,14 @@
+
+syntax = "proto3";
+
+package design;
+
+import "math/sides.proto";
+
+option csharp_namespace = "DesignModel";
+
+message TrimSettings
+{
+  math.Sides bleed = 1;
+  math.Sides slug = 2;
+}

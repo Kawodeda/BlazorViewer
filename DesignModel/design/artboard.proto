@@ -1,0 +1,20 @@
+
+syntax = "proto3";
+
+package design;
+
+import "appearance/fill.proto";
+import "math/affine_2d_matrix.proto";
+import "math/size.proto";
+import "trim_settings.proto";
+
+option csharp_namespace = "DesignModel";
+
+message Artboard
+{
+  string name = 1;
+  appearance.Fill background = 2;
+  math.Affine2DMatrix basis = 3;
+  math.Size size = 4;
+  TrimSettings trim_settings = 5;
+}

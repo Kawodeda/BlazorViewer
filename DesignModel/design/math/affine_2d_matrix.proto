@@ -1,0 +1,36 @@
+
+// An Affine2DMatrix represents a 3 by 3 matrix that defines an affine 
+// transformation on a two-dimensional plane. It contains a matrix for
+// two-dimensional linear transformation and a translation vector.
+//
+// # Example:
+//
+// |  a1  a2  b1  |
+// |  a3  a4  b2  |
+// |  0   0   1   |
+//
+// Where (a1, ..., a4) are elements of linear transformation matrix
+// and (b1, b2) are the components of shift vector.
+//
+// Thus, you can perform an affine transformation just by multiplying your
+// position vector by an Affine2DMatrix.
+
+syntax = "proto3";
+
+package design.math;
+
+option csharp_namespace = "DesignModel.MathTypes";
+
+message Affine2DMatrix
+{
+  // Represents the number of columns in a matrix
+  int32 width = 1;
+
+  // The number of rows in a matrix
+  int32 height = 2;
+
+  // Contains the elements of a matrix written in a one-dimensional-like
+  // list. Matrix's width and height are needed to restore the original 2D
+  // form of matrix.
+  repeated float elements = 3;
+}

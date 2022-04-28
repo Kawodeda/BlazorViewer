@@ -1,0 +1,16 @@
+
+syntax = "proto3";
+
+package design;
+
+import "artboard.proto";
+import "layer.proto";
+
+option csharp_namespace = "DesignModel";
+
+message Surface
+{
+  string name = 1;
+  repeated Artboard artboards = 2;
+  repeated Layer layers = 3;
+}

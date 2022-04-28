@@ -1,0 +1,13 @@
+
+syntax = "proto3";
+
+package design;
+
+import "surface.proto";
+
+option csharp_namespace = "DesignModel";
+
+message Design
+{
+  repeated Surface surfaces = 1;
+}

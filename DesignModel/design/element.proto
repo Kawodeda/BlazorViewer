@@ -1,0 +1,25 @@
+
+syntax = "proto3";
+
+package design;
+
+import "content/element_content.proto";
+import "math/affine_2d_matrix.proto";
+import "math/point.proto";
+
+option csharp_namespace = "DesignModel";
+
+enum ReferencePointType
+{
+  UNSPECIFIED = 0;
+  TOP_LEFT_CORNER = 1;
+  CENTER = 2;
+}
+
+message Element
+{
+  math.Point position = 1;
+  math.Affine2DMatrix transform = 2;
+  ReferencePointType reference_point = 3;
+  content.ElementContent content = 4;
+}

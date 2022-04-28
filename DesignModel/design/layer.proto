@@ -1,0 +1,14 @@
+
+syntax = "proto3";
+
+package design;
+
+import "element.proto";
+
+option csharp_namespace = "DesignModel";
+
+message Layer
+{
+  string name = 1;
+  repeated Element elements = 2;
+}
