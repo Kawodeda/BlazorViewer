@@ -1,4 +1,7 @@
 
+// An Artboard represents an area on a surface that defines which design
+// elements will be eventually printed.
+
 syntax = "proto3";
 
 package design;

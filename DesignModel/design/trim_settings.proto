@@ -1,4 +1,6 @@
 
+// A TrimSettings is a part of Artboard that defines its shape and trim.
+
 syntax = "proto3";
 
 package design;
