@@ -1,0 +1,13 @@
+
+// A Color is an abstract color
+
+syntax = "proto3";
+
+package design.appearance;
+
+option csharp_namespace = "Aurigma.Design.AppearanceTypes";
+
+message Color
+{
+
+}
