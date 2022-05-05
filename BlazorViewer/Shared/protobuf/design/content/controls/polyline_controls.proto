@@ -7,7 +7,7 @@ package design.content.controls;
 
 import "math/point.proto";
 
-option csharp_namespace = "Aurigma.Design.ContentTypes.Controls";
+option csharp_namespace = "Aurigma.Design.Content.Controls";
 
 message PolylineControls
 {

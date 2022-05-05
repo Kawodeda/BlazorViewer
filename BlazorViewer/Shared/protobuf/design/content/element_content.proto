@@ -11,7 +11,7 @@ import "content/closed_vector.proto";
 import "content/image.proto";
 import "content/text.proto";
 
-option csharp_namespace = "Aurigma.Design.ContentTypes";
+option csharp_namespace = "Aurigma.Design.Content";
 
 message ElementContent
 {

@@ -10,10 +10,10 @@ syntax = "proto3";
 package design.content;
 
 import "content/controls/closed_vector_controls.proto";
-import "appearance/stroke.proto";
-import "appearance/fill.proto";
+import "appearance/pen.proto";
+import "appearance/brush.proto";
 
-option csharp_namespace = "Aurigma.Design.ContentTypes";
+option csharp_namespace = "Aurigma.Design.Content";
 
 message ClosedVector
 {
@@ -21,8 +21,8 @@ message ClosedVector
   controls.ClosedVectorControls closed_vector_controls = 1;
 
   // Defines the filling of the inner area of a closed vector.
-  appearance.Fill fill = 2;
+  appearance.Brush fill = 2;
 
   // Defines closed vector outline appearance.
-  appearance.Stroke stroke = 3;
+  appearance.Pen stroke = 3;
 }

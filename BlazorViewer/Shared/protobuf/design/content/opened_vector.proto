@@ -9,9 +9,9 @@ syntax = "proto3";
 package design.content;
 
 import "content/controls/opened_vector_controls.proto";
-import "appearance/stroke.proto";
+import "appearance/pen.proto";
 
-option csharp_namespace = "Aurigma.Design.ContentTypes";
+option csharp_namespace = "Aurigma.Design.Content";
 
 message OpenedVector
 {
@@ -19,5 +19,5 @@ message OpenedVector
   controls.OpenedVectorControls controls = 1;
 
   // Defines the appearance of stroke.
-  appearance.Stroke stroke = 2;
+  appearance.Pen stroke = 2;
 }

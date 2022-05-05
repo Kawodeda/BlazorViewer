@@ -1,5 +1,5 @@
 
-// A Color is an abstract color
+// A Brush is an abstract description of brush for filling closed vectors.
 
 syntax = "proto3";
 
@@ -7,7 +7,7 @@ package design.appearance;
 
 option csharp_namespace = "Aurigma.Design.Appearance";
 
-message Color
+message Brush
 {
 
 }
