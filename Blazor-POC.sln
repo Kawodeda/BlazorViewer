@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorViewer.Client", "Blaz
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorViewer.Shared", "BlazorViewer\Shared\BlazorViewer.Shared.csproj", "{9E9D5811-0D0E-47DA-B3D8-AE2F4E55D382}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesignUsageExample", "BlazorViewer\DesignUsageExample\DesignUsageExample.csproj", "{20B5AEC3-5243-40D9-8134-78A002276CDD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedTests", "BlazorViewer\SharedTests\SharedTests.csproj", "{2A6AE3B4-244A-4426-8A38-B79502C92194}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{9E9D5811-0D0E-47DA-B3D8-AE2F4E55D382}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E9D5811-0D0E-47DA-B3D8-AE2F4E55D382}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E9D5811-0D0E-47DA-B3D8-AE2F4E55D382}.Release|Any CPU.Build.0 = Release|Any CPU
-		{20B5AEC3-5243-40D9-8134-78A002276CDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{20B5AEC3-5243-40D9-8134-78A002276CDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{20B5AEC3-5243-40D9-8134-78A002276CDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{20B5AEC3-5243-40D9-8134-78A002276CDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A6AE3B4-244A-4426-8A38-B79502C92194}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A6AE3B4-244A-4426-8A38-B79502C92194}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A6AE3B4-244A-4426-8A38-B79502C92194}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A6AE3B4-244A-4426-8A38-B79502C92194}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,7 +1,7 @@
-﻿using DesignModel;
-using DesignModel.AppearanceTypes;
-using DesignModel.ContentTypes;
-using DesignModel.ContentTypes.Controls;
+﻿using Aurigma.Design;
+using Aurigma.Design.Appearance;
+using Aurigma.Design.Content;
+using Aurigma.Design.Content.Controls;
 using DesignModel.MathTypes;
 using Google.Protobuf;
 
