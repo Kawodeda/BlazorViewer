@@ -14,9 +14,9 @@ option csharp_namespace = "Aurigma.Design.Content.Controls";
 message ClosedVectorControls
 {
   // Only one concrete controls is stored at a time.
-  oneof closed_vector_controls
+  oneof controls
   {
-    RectangleControls rectangle_controls = 1;
-    PathControls path_controls = 2;
+    RectangleControls rectangle = 1;
+    PathControls path = 2;
   }  
 }

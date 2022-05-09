@@ -18,7 +18,7 @@ option csharp_namespace = "Aurigma.Design.Content";
 message ClosedVector
 {
   // Contains closed vector's control points.
-  controls.ClosedVectorControls closed_vector_controls = 1;
+  controls.ClosedVectorControls controls = 1;
 
   // Defines the filling of the inner area of a closed vector.
   appearance.Brush fill = 2;

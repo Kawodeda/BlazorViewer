@@ -11,5 +11,5 @@ option csharp_namespace = "Aurigma.Design.Content.Controls";
 
 message PolylineControls
 {
-  math.Point controls = 1;
+  repeated math.Point controls = 1;
 }
