@@ -28,13 +28,13 @@ enum LineJoin
 
 message Pen
 {
-  double width = 1;
+  float width = 1;
   LineCap line_cap = 2;
   LineJoin line_join = 3;
   float miter_limit = 4;
   float dash_offset = 5;
-  repeated double dashes = 6;
-  oneof appearence
+  repeated float dashes = 6;
+  oneof appearance
   {
     appearance.color.Color color = 7;
     appearance.Brush fill = 8;

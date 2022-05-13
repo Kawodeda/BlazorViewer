@@ -6,10 +6,8 @@ namespace SharedTests
 {
     public class PointTests
     {
-        public const float Pi = (float)Math.PI;
-
         [Test]
-        public void Constructor_x_y_returns_point()
+        public void For_ConstructorXY_Expect_XYPropertiesInitialized()
         {
             float x = 20f;
             float y = 30f;
@@ -26,7 +24,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Multiply_returns_multiplied_point()
+        public void For_StaticMultiply_Expect_ResultIsMatrixProduct()
         {
             var point = new Point()
             {
@@ -59,7 +57,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Multiply_is_commutative()
+        public void For_StaticMultiply_Expect_OperationIsCommutative()
         {
             var point = new Point()
             {
@@ -87,7 +85,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Multiply_by_returns_multiplied_point()
+        public void For_MultiplyBy_Expect_ResultIsEquivalentToStaticMultiply()
         {
             var point = new Point()
             {
@@ -108,19 +106,16 @@ namespace SharedTests
                 D2 = 5f
             };
 
-            var expected = new Point()
-            {
-                X = 30f,
-                Y = 35f
-            };
+            Point expected = Point.Multiply(point, matrix);
 
             Point actual = point.MultiplyBy(matrix);
+            
 
             Assert.AreEqual(expected, actual);
         }
 
         [Test]
-        public void Multiplying_operator_returns_multiplied_point()
+        public void For_MultiplyingOperator_Expect_ResultIsEquivalentToStaticMultiply()
         {
             var point = new Point()
             {
@@ -141,11 +136,7 @@ namespace SharedTests
                 D2 = 5f
             };
 
-            var expected = new Point()
-            {
-                X = 30f,
-                Y = 35f
-            };
+            Point expected = Point.Multiply(point, matrix);
 
             Point actual = point * matrix;
 
@@ -153,7 +144,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Multiplying_operator_is_commutative()
+        public void For_MultiplyingOperator_Expect_OperationIsCommutative()
         {
             var point = new Point()
             {
@@ -181,18 +172,18 @@ namespace SharedTests
         }
 
         [Test]
-        public void Negate_returns_negated_point()
+        public void For_StaticNegate_Expect_ResultIsPointWithNegatedCoordinates()
         {
             var point = new Point()
             {
                 X = 10f,
-                Y = 15f
+                Y = -15f
             };
 
             var expected = new Point()
             {
                 X = -10f,
-                Y = -15f
+                Y = 15f
             };
 
             Point actual = Point.Negate(point);
@@ -201,19 +192,15 @@ namespace SharedTests
         }
 
         [Test]
-        public void Unary_minus_operator_returns_negated_point()
+        public void For_UnaryMinusOperator_Expect_ResultIsEquivalentToStaticNegate()
         {
             var point = new Point()
             {
                 X = 10f,
-                Y = 15f
-            };
-
-            var expected = new Point()
-            {
-                X = -10f,
                 Y = -15f
             };
+
+            var expected = Point.Negate(point);
 
             Point actual = -point;
 
@@ -221,7 +208,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Translate_returns_translated_point()
+        public void For_Translate_Expect_ResultIsPointTranslatedByShift()
         {
             var point = new Point()
             {
@@ -229,7 +216,7 @@ namespace SharedTests
                 Y = 10f
             };
 
-            var destination = new Point()
+            var shift = new Point()
             {
                 X = 10f,
                 Y = 5f
@@ -241,13 +228,13 @@ namespace SharedTests
                 Y = 15f
             };
 
-            Point actual = point.Translate(destination);
+            Point actual = point.Translate(shift);
 
             Assert.AreEqual(expected, actual);
         }
 
         [Test]
-        public void Scale_returns_scaled_point()
+        public void For_ScaleDxDy_Expect_ResultIsPointScaledByDxDy()
         {
             var point = new Point()
             {
@@ -270,7 +257,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Scale_one_value_returns_scaled_point()
+        public void For_ScaleFactor_Expect_ResultIsPointScaledByFactor()
         {
             var point = new Point()
             {
@@ -292,7 +279,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Scale_at_returns_scaled_point_at_center()
+        public void For_ScaleAtDxDy_Expect_ResultIsPointScaledByDxDyRelativeToCenter()
         {
             var point = new Point()
             {
@@ -321,7 +308,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Scale_at_one_value_returns_scaled_point_at_center()
+        public void For_ScaleAtFactor_Expect_ResultIsPointScaledByFactorRelativeToCenter()
         {
             var point = new Point()
             {
@@ -349,7 +336,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Rotate_returns_rotated_point()
+        public void For_Rotate_Expect_ResultIsPointRotatedByAngle()
         {
             var point = new Point()
             {
@@ -357,7 +344,7 @@ namespace SharedTests
                 Y = 0f
             };
 
-            float angle = Pi / 2;
+            float angle = MathF.PI / 2;
             float sin = MathF.Sin(angle);
             float cos = MathF.Cos(angle);
 
@@ -373,7 +360,7 @@ namespace SharedTests
         }
 
         [Test]
-        public void Rotate_at_returns_rotated_point_at_center()
+        public void For_RotateAt_Expect_ResultIsPointRotatedByAngleRelativeToCenter()
         {
             var point = new Point()
             {
@@ -387,7 +374,7 @@ namespace SharedTests
                 Y = 2f
             };
 
-            float angle = Pi / 2;
+            float angle = MathF.PI / 2;
             float sin = MathF.Sin(angle);
             float cos = MathF.Cos(angle);
 
@@ -399,8 +386,38 @@ namespace SharedTests
 
             Point actual = point.RotateAt(angle, center);
 
+            float epsilon = 0.000001f;
+
             // Doesn't work without NearlyEquals
-            Assert.IsTrue(expected.NearlyEquals(actual));
+            Assert.IsTrue(expected.NearlyEquals(actual, epsilon));
+        }
+
+        [Test]
+        public void When_UseNearlyEqualsWithNegativeEpsilon_Expect_ArgumentExceptionIsThrown()
+        {
+            var point1 = new Point()
+            {
+                X = 1.19999998f,
+                Y = 0f
+            };
+
+            var point2 = new Point()
+            {
+                X = 1.2f,
+                Y = 0f
+            };
+
+            float epsilon = -0.00001f;
+
+            try
+            {
+                point1.NearlyEquals(point2, epsilon);
+                Assert.Fail();
+            }
+            catch(ArgumentException)
+            {
+                Assert.Pass();
+            }
         }
     }
 }

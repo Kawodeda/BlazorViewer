@@ -72,11 +72,11 @@ namespace DesignUsageExample
                 }
             };
 
-            List<double> dashes = new List<double>()
+            List<float> dashes = new List<float>()
             {
-                0.0,
-                1.0,
-                1.1
+                0.0f,
+                1.0f,
+                1.1f
             };
 
             Pen blackPen = new Pen()

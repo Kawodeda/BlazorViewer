@@ -9,11 +9,11 @@ namespace Aurigma.Design.Math
             return new Affine2DMatrix();
         }
 
-        public static Affine2DMatrix CreateTranslate(Point destination)
+        public static Affine2DMatrix CreateTranslate(Point shift)
         {
             Affine2DMatrix result = CreateIdentity();
-            result.d1_ = destination.X;
-            result.d2_ = destination.Y;
+            result.D1 = shift.X;
+            result.D2 = shift.Y;
 
             return result;
         }
@@ -21,8 +21,8 @@ namespace Aurigma.Design.Math
         public static Affine2DMatrix CreateScale(float dx, float dy)
         {
             Affine2DMatrix result = CreateIdentity();
-            result.m11_ = dx;
-            result.m22_ = dy;
+            result.M11 = dx;
+            result.M22 = dy;
 
             return result;
         }
@@ -38,10 +38,10 @@ namespace Aurigma.Design.Math
             float cos = MathF.Cos(angle);
 
             Affine2DMatrix result = CreateIdentity();
-            result.m11_ = cos;
-            result.m12_ = -sin;
-            result.m21_ = sin;
-            result.m22_ = cos;
+            result.M11 = cos;
+            result.M12 = -sin;
+            result.M21 = sin;
+            result.M22 = cos;
 
             return result;
         }
@@ -50,17 +50,19 @@ namespace Aurigma.Design.Math
         {
             return new Affine2DMatrix()
             {
-                m11_ = a.m11_ * b.m11_ + a.m12_ * b.m21_,
-                m12_ = a.m11_ * b.m12_ + a.m12_ * b.m22_,
-                m21_ = a.m21_ * b.m11_ + a.m22_ * b.m21_,
-                m22_ = a.m21_ * b.m12_ + a.m22_ * b.m22_,
-                d1_ = a.m11_ * b.d1_ + a.m12_ * b.d2_ + a.d1_,
-                d2_ = a.m21_ * b.d1_ + a.m22_ * b.d2_ + a.d2_
+                M11 = a.M11 * b.M11 + a.M12 * b.M21,
+                M12 = a.M11 * b.M12 + a.M12 * b.M22,
+                M21 = a.M21 * b.M11 + a.M22 * b.M21,
+                M22 = a.M21 * b.M12 + a.M22 * b.M22,
+                D1 = a.M11 * b.D1 + a.M12 * b.D2 + a.D1,
+                D2 = a.M21 * b.D1 + a.M22 * b.D2 + a.D2
             };
         }
 
         public static Affine2DMatrix operator *(Affine2DMatrix a, Affine2DMatrix b)
-            => Multiply(a, b);
+        {
+            return Multiply(a, b);
+        }
 
         public Affine2DMatrix Prepend(Affine2DMatrix matrix)
         {
@@ -72,14 +74,14 @@ namespace Aurigma.Design.Math
             return Multiply(this, matrix);
         }
 
-        public Affine2DMatrix Translate(Point destination)
+        public Affine2DMatrix Translate(Point shift)
         {
-            return Append(CreateTranslate(destination));
+            return Append(CreateTranslate(shift));
         }
 
-        public Affine2DMatrix PrependTranslate(Point destination)
+        public Affine2DMatrix PrependTranslate(Point shift)
         {
-            return Prepend(CreateTranslate(destination));
+            return Prepend(CreateTranslate(shift));
         }
 
         public Affine2DMatrix Scale(float factor)
@@ -154,12 +156,12 @@ namespace Aurigma.Design.Math
         // constructor is called
         partial void OnConstruction()
         {           
-            m11_ = 1f;
-            m12_ = 0f;
-            m21_ = 0f;
-            m22_ = 1f;
-            d1_ = 0f;
-            d2_ = 0f;
+            M11 = 1f;
+            M12 = 0f;
+            M21 = 0f;
+            M22 = 1f;
+            D1 = 0f;
+            D2 = 0f;
         }
     }
 }

@@ -5,19 +5,19 @@ namespace Aurigma.Design.Math
     {
         public Point(float x, float y)
         {
-            x_ = x;
-            y_ = y;
+            X = x;
+            Y = y;
         }
 
         public static Point Negate(Point point)
         {
-            return new Point(-point.x_, -point.y_);
+            return new Point(-point.X, -point.Y);
         }
 
         public static Point Multiply(Affine2DMatrix matrix, Point point)
         {
-            float x = point.x_ * matrix.M11 + point.y_ * matrix.M12 + matrix.D1;
-            float y = point.x_ * matrix.M21 + point.y_ * matrix.M22 + matrix.D2;
+            float x = point.X * matrix.M11 + point.Y * matrix.M12 + matrix.D1;
+            float y = point.X * matrix.M21 + point.Y * matrix.M22 + matrix.D2;
 
             return new Point(x, y);
         }
@@ -27,34 +27,29 @@ namespace Aurigma.Design.Math
             return Multiply(matrix, point);
         }
 
-        public static bool NearlyEqual(float a, float b, float epsilon)
+        public static Point operator -(Point point)
         {
-            float diff = MathF.Abs(a - b);
-
-            if (a == b)
-            {
-                return true;
-            }
-            else
-            {
-                return diff < epsilon;
-            }
+            return Negate(point);
         }
 
-        public static Point operator -(Point point) => Negate(point);
+        public static Point operator *(Point point, Affine2DMatrix matrix)
+        {
+            return Multiply(point, matrix);
+        }
 
-        public static Point operator *(Point point, Affine2DMatrix matrix) => Multiply(point, matrix);
-
-        public static Point operator *(Affine2DMatrix matrix, Point point) => Multiply(matrix, point);
+        public static Point operator *(Affine2DMatrix matrix, Point point)
+        {
+            return Multiply(matrix, point);
+        }
 
         public Point MultiplyBy(Affine2DMatrix matrix)
         {
             return Multiply(this, matrix);
         }
 
-        public Point Translate(Point destination)
+        public Point Translate(Point shift)
         {
-            return MultiplyBy(Affine2DMatrix.CreateTranslate(destination));
+            return MultiplyBy(Affine2DMatrix.CreateTranslate(shift));
         }
 
         public Point Scale(float factor)
@@ -87,12 +82,22 @@ namespace Aurigma.Design.Math
             return MultiplyBy(Affine2DMatrix.CreateIdentity().RotateAt(angle, center));
         }
 
-        public bool NearlyEquals(Point other)
+        public bool NearlyEquals(Point other, float epsilon)
         {
-            const float epsilon = 0.000001f;
+            if (epsilon < 0.0f)
+            {
+                throw new ArgumentException("Received negative epsilon");
+            }
 
-            return NearlyEqual(x_, other.x_, epsilon) 
-                && NearlyEqual(y_, other.y_, epsilon);
+            return NearlyEqual(X, other.X, epsilon) 
+                && NearlyEqual(Y, other.Y, epsilon);
+        }
+
+        private static bool NearlyEqual(float a, float b, float epsilon)
+        {
+            float diff = MathF.Abs(a - b);
+
+            return diff < epsilon;
         }
     }
 }
