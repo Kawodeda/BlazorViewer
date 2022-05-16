@@ -1,3 +1,5 @@
+using Aurigma.Design;
+using BlazorViewer.Server.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IProtoStorageService, DesignFileStorageService>();
+builder.Services.AddScoped<INameGeneratorService, FileNameGeneratorService>();
 
 var app = builder.Build();
 
@@ -13,6 +19,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {
