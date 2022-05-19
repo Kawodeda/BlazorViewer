@@ -1,105 +1,118 @@
 ﻿using BlazorViewer.Server.Services;
+using BlazorViewer.Server.Dtos;
+using BlazorViewer.Server.Filters;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorViewer.Server.Controllers
 {
-    [Route("api/storage/v1/[controller]")]
     [ApiController]
-    public class DesignsController : ControllerBase
+    [Route("api/storage/v1/[controller]")]
+    [TypeFilter(typeof(DesignsExceptionFilter))]
+    public sealed class DesignsController : ControllerBase
     {
-        private readonly IProtoStorageService _storageService;
+        private readonly IDesignStorageService _storageService;
 
-        public DesignsController(IProtoStorageService storageService)
+        public DesignsController(IDesignStorageService storageService)
         {
             _storageService = storageService;
         }
 
-        [HttpGet("{name}")]
-        public IActionResult Get(string name)
+        [HttpGet("{name}/info", Name = nameof(GetDesignInfo))]
+        [Produces(contentType: "application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DesignDto))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(FileErrorDto))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<DesignDto> GetDesignInfo([FromRoute] string name)
+        {
+            try
+            {
+                DesignDto result = _storageService.GetDesignInfo(name);
+                return Ok(result);
+            }
+            catch (FileNotFoundException)
+            {
+                return NotFound(new FileErrorDto
+                {
+                    Name = name
+                });
+            }
+        }
+
+        [HttpGet("{name}/content", Name = nameof(GetDesignContent))]
+        [Produces(contentType: "application/octet-stream", "application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(FileStreamResult))]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(FileErrorDto))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult GetDesignContent([FromRoute] string name)
         {           
             try
             {
-                Stream result = _storageService.Retrieve(name);
+                Stream result = _storageService.GetDesignContent(name);
                 return File(result, "application/octet-stream");
             }
             catch (FileNotFoundException)
             {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Error();
+                return NotFound(new FileErrorDto
+                { 
+                    Name = name
+                });
             }
         }
 
-        [HttpGet]
-        public IActionResult Get()
+        [HttpGet(Name = nameof(ListDesigns))]
+        [Produces(contentType: "application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DesignDto>))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<IEnumerable<DesignDto>> ListDesigns()
+        {
+            var designs = _storageService.ListDesigns();
+            return Ok(designs);
+        }
+
+        [HttpPost(Name = nameof(UploadDesign))]
+        [Produces(contentType: "application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(DesignDto))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<DesignDto> UploadDesign(IFormFile file)
+        {
+            Stream stream = file.OpenReadStream();
+            DesignDto info = _storageService.UploadDesign(stream);
+
+            return CreatedAtAction(nameof(UploadDesign), info);
+        }
+
+        [HttpPut("{name}", Name = nameof(UpdateDesign))]
+        [Produces(contentType: "application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DesignDto))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult UpdateDesign([FromRoute] string name, IFormFile file)
+        {
+            Stream stream = file.OpenReadStream();
+            DesignDto info = _storageService.UpdateDesign(name, stream);
+
+            return Ok(info);
+        }
+
+        [HttpDelete("{name}", Name = nameof(DeleteDesign))]
+        [Produces(contentType: "application/json")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(FileErrorDto))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult DeleteDesign([FromRoute] string name)
         {
             try
             {
-                return new ObjectResult(_storageService.Retrieve());
-            }
-            catch(Exception)
-            {
-                return Error();
-            }
-        }
+                _storageService.DeleteDesign(name);
 
-        [HttpPost]
-        public IActionResult Post()
-        {
-            try
-            {
-                Stream input = Request.BodyReader.AsStream();
-                _storageService.Create(input);
-
-                return Ok();
+                return NoContent();
             }
-            catch (Exception)
+            catch (FileNotFoundException)
             {
-                return Error();
+                return NotFound(new FileErrorDto
+                {
+                    Name = name
+                });
             }
-        }
-
-        [HttpPut("{name}")]
-        public IActionResult Put(string name)
-        {
-            try
-            {
-                Stream input = Request.BodyReader.AsStream();
-                _storageService.Update(name, input);
-
-                return Ok();
-            }
-            catch (Exception)
-            {
-                return Error();
-            }
-        }
-
-        [HttpDelete("{name}")]
-        public IActionResult Delete(string name)
-        {
-            try
-            {
-                _storageService.Delete(name);
-
-                return Ok();
-            }
-            catch (DirectoryNotFoundException)
-            {
-                return NotFound();
-            }
-            catch (Exception)
-            {
-                return Error();
-            }
-        }
-
-        [NonAction]
-        public IActionResult Error()
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
 }
