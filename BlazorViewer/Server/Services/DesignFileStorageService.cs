@@ -1,4 +1,4 @@
-﻿
+﻿using System.IO.Abstractions;
 using BlazorViewer.Server.Dtos;
 using BlazorViewer.Server.Options;
 using Microsoft.Extensions.Options;
@@ -9,13 +9,21 @@ namespace BlazorViewer.Server.Services
     {
         private readonly FileStorageOptions _options;
         private readonly INameGeneratorService _nameGeneratorService;
+        private readonly IFileSystem _fileSystem;
 
         public DesignFileStorageService(
             IOptions<FileStorageOptions> options,
-            INameGeneratorService nameGeneratorService)
+            INameGeneratorService nameGeneratorService) 
+            : this(options, nameGeneratorService, new FileSystem()) {}
+
+        public DesignFileStorageService(
+            IOptions<FileStorageOptions> options,
+            INameGeneratorService nameGeneratorService,
+            IFileSystem fileSystem)
         {
             _options = options.Value;
             _nameGeneratorService = nameGeneratorService;
+            _fileSystem = fileSystem;
         }
 
         public DesignDto UploadDesign(Stream content)
@@ -64,23 +72,23 @@ namespace BlazorViewer.Server.Services
         {
             string path = GetPath(name);
 
-            if(File.Exists(path) == false)
+            if(_fileSystem.File.Exists(path) == false)
             {
                 throw new FileNotFoundException();
             }
 
-            File.Delete(path);
+            _fileSystem.File.Delete(path);
         }
 
         private Stream GetFromPath(string path)
         {
             MemoryStream result = new MemoryStream();
-            using (FileStream input = File.OpenRead(path))
+            using (Stream input = _fileSystem.File.OpenRead(path))
             {
                 input.CopyTo(result);
             }
             result.Position = 0;
-
+            
             return result;
         }
 
@@ -88,8 +96,8 @@ namespace BlazorViewer.Server.Services
         {
             string path = GetPath(name);
 
-            Directory.CreateDirectory(_options.Path);
-            using (FileStream output = File.Create(path))
+            _fileSystem.Directory.CreateDirectory(_options.Path);
+            using (Stream output = _fileSystem.File.Create(path))
             {
                 content.CopyTo(output);
             }
@@ -97,24 +105,25 @@ namespace BlazorViewer.Server.Services
 
         private string GetPath(string filename)
         {           
-            return Path.Combine(_options.Path, $"{filename}{_options.FileExtension}");
+            return _fileSystem.Path
+                .Combine(_options.Path, $"{filename}{_options.FileExtension}");
         }
 
         private IEnumerable<DesignDto> GetFileInfos()
         {
-            return Directory
+            return _fileSystem.Directory
                 .EnumerateFiles(_options.Path, $"*{_options.FileExtension}")
                 .Select(x => GetFileInfo(x));
         }
 
         private DesignDto GetFileInfo(string path)
         {
-            if (File.Exists(path) == false)
+            if (_fileSystem.File.Exists(path) == false)
             {
                 throw new FileNotFoundException();
             }
 
-            string name = Path.GetFileNameWithoutExtension(path);
+            string name = _fileSystem.Path.GetFileNameWithoutExtension(path);
 
             return new DesignDto()
             {
