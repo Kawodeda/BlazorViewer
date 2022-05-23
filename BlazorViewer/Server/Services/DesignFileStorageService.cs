@@ -29,8 +29,9 @@ namespace BlazorViewer.Server.Services
         public DesignDto UploadDesign(Stream content)
         {
             string filename = _nameGeneratorService.Generate("design");
+            string path = GetPath(filename);
 
-            CreateFile(filename, content);
+            CreateFile(path, content);
 
             return new DesignDto()
             {
@@ -60,7 +61,9 @@ namespace BlazorViewer.Server.Services
 
         public DesignDto UpdateDesign(string name, Stream content)
         {
-            CreateFile(name, content);
+            string path = GetPath(name);
+
+            UpdateFile(path, content);
 
             return new DesignDto()
             {
@@ -82,22 +85,23 @@ namespace BlazorViewer.Server.Services
 
         private Stream GetFromPath(string path)
         {
-            MemoryStream result = new MemoryStream();
-            using (Stream input = _fileSystem.File.OpenRead(path))
-            {
-                input.CopyTo(result);
-            }
-            result.Position = 0;
-            
-            return result;
+            return _fileSystem.File.OpenRead(path);
         }
 
-        private void CreateFile(string name, Stream content)
+        private void CreateFile(string path, Stream content)
         {
-            string path = GetPath(name);
-
             _fileSystem.Directory.CreateDirectory(_options.Path);
             using (Stream output = _fileSystem.File.Create(path))
+            {
+                content.CopyTo(output);
+            }
+        }
+
+        private void UpdateFile(string path, Stream content)
+        {
+            using (Stream output = _fileSystem.File.Open(
+                path, 
+                FileMode.Truncate))
             {
                 content.CopyTo(output);
             }
