@@ -1,3 +1,5 @@
+using BlazorViewer.Server.Services;
+using BlazorViewer.Server.Options;
 using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +8,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddSwaggerGen();
+
+builder.Services.Configure<FileStorageOptions>(
+    builder.Configuration.GetSection(FileStorageOptions.FileStorage));
+
+builder.Services.AddScoped<IDesignStorageService, DesignFileStorageService>();
+builder.Services.AddSingleton<INameGeneratorService, FileNameGeneratorService>();
 
 var app = builder.Build();
 
@@ -13,6 +22,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {

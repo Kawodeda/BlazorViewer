@@ -3,3 +3,4 @@ obj/
 .vs/
 BlazorViewer/Shared/Design/Generated/
 BlazorViewer/DesignUsageExample/Properties/
+*.user
