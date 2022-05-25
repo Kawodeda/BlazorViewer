@@ -127,22 +127,12 @@ namespace ServerTests
             var fileSystem = new MockFileSystem();
             fileSystem.AddDirectory(_options.Path);
 
-            string filename = "design1";
-            string path = fileSystem.Path
-                .Combine(_options.Path, $"{filename}{_options.FileExtension}");
-
-            Design design = Design.CreateBlank();
-            using (Stream output = fileSystem.File.Create(path))
-            {
-                design.WriteTo(output);
-            }
-
             var service = new DesignFileStorageService(
                 _wrappedOptions,
                 _nameGeneratorService,
                 fileSystem);
 
-            string nonExistingName = "design2";
+            string nonExistingName = "design1";
 
             Assert.Throws(
                 typeof(FileNotFoundException),
@@ -182,22 +172,12 @@ namespace ServerTests
             var fileSystem = new MockFileSystem();
             fileSystem.AddDirectory(_options.Path);
 
-            string filename = "design1";
-            string path = fileSystem.Path
-                .Combine(_options.Path, $"{filename}{_options.FileExtension}");
-
-            Design design = Design.CreateBlank();
-            using (Stream output = fileSystem.File.Create(path))
-            {
-                design.WriteTo(output);
-            }
-
             var service = new DesignFileStorageService(
                 _wrappedOptions,
                 _nameGeneratorService,
                 fileSystem);
 
-            string nonExistingName = "design2";
+            string nonExistingName = "design1";
 
             Assert.Throws(
                 typeof(FileNotFoundException),
@@ -329,16 +309,6 @@ namespace ServerTests
             var fileSystem = new MockFileSystem();
             fileSystem.AddDirectory(_options.Path);
 
-            string filename = "design1";
-            string path = fileSystem.Path
-                .Combine(_options.Path, $"{filename}{_options.FileExtension}");
-
-            Design design = Design.CreateBlank();
-            using (Stream output = fileSystem.File.Create(path))
-            {
-                design.WriteTo(output);
-            }
-
             var service = new DesignFileStorageService(
                 _wrappedOptions,
                 _nameGeneratorService,
@@ -352,7 +322,7 @@ namespace ServerTests
             byte[] updatedBytes = updatedDesign.ToByteArray();
             Stream updatedStream = new MemoryStream(updatedBytes);
 
-            string nonExistingName = "design2";
+            string nonExistingName = "design1";
 
             Assert.Throws(
                 typeof(FileNotFoundException),
@@ -393,22 +363,12 @@ namespace ServerTests
             var fileSystem = new MockFileSystem();
             fileSystem.AddDirectory(_options.Path);
 
-            string filename = "design1";
-            string path = fileSystem.Path
-                .Combine(_options.Path, $"{filename}{_options.FileExtension}");
-
-            Design design = Design.CreateBlank();
-            using (Stream output = fileSystem.File.Create(path))
-            {
-                design.WriteTo(output);
-            }
-
             var service = new DesignFileStorageService(
                 _wrappedOptions,
                 _nameGeneratorService,
                 fileSystem);
 
-            string nonExistingName = "design2";
+            string nonExistingName = "design1";
 
             Assert.Throws(
                 typeof(FileNotFoundException),
