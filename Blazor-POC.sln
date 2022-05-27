@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DesignUsageExample", "Blazo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiClient", "BlazorViewer\ApiClient\ApiClient.csproj", "{C2243A9D-3144-431D-9AD6-7263D66F15CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerTests", "BlazorViewer\ServerTests\ServerTests.csproj", "{D463A9EC-813A-4A64-9AC4-B17BE24B3BA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerTests", "BlazorViewer\ServerTests\ServerTests.csproj", "{D463A9EC-813A-4A64-9AC4-B17BE24B3BA8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
