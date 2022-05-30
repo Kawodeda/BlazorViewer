@@ -3,10 +3,9 @@
 @using Blazor.Extensions
 @using Blazor.Extensions.Canvas
 @using Blazor.Extensions.Canvas.Canvas2D
+@inject IJSRuntime JsRuntime
 
-<h3>DesignViewer</h3>
-
-<div id="canvas" style="position: fixed; background-color: gray; width: @Width; height: @Height">
+<div style="background-color: gray; width: @(Width)px; height: @(Height)px">
     <BECanvas Width="@Width" Height="@Height" @ref="_canvasReference"></BECanvas>
 </div>
 
@@ -15,6 +14,8 @@
     private int _currentSurfaceIndex;
     private BECanvasComponent _canvasReference;
     private Canvas2DContext _outputCanvasContext;
+    private IJSObjectReference _module;
+    private DotNetObjectReference<DesignViewer> _instanceRef; 
 
     [Parameter]
     public long Width { get; set; } = 256;
@@ -30,22 +31,53 @@
         }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _outputCanvasContext = await _canvasReference.CreateCanvas2DAsync();
+
+            _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./Components/DesignViewer.razor.js");
+
+            _instanceRef = DotNetObjectReference.Create(this);
+
+            RequestRendering();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void RequestRendering()
+    {
+        if (_module == null || _instanceRef == null)
+            return;
+
+        _module.InvokeVoidAsync("callRequestAnimationFrame", _instanceRef);
+    }
+
+    [JSInvokable]
+    public async ValueTask ViewerRenderLoop(float timeStamp)
+    {
+        await RedrawCanvasAsync(timeStamp);
+
+        RequestRendering();
+    }
+
     public async Task SetDesign(Design design)
     {
         _design = design;
-        await RedrawCanvasAsync();
+        RequestRendering();
     }
 
     public async Task SetCurrentSurfaceIndex(int index)
     {
         _currentSurfaceIndex = index;
-        await RedrawCanvasAsync();
+        
+        RequestRendering();
     }
 
-    private async Task RedrawCanvasAsync()
+    private async Task RedrawCanvasAsync(float timeStamp)
     {
-        _outputCanvasContext = await _canvasReference.CreateCanvas2DAsync();
-
         Size size = CurrentSurface.Artboards.First().Size;
         Affine2DMatrix transform = CurrentSurface.Artboards.First().Basis;
 
@@ -60,5 +92,9 @@
 
         await _outputCanvasContext.SetFillStyleAsync("lightgray");
         await _outputCanvasContext.FillRectAsync(0, 0, size.Width, size.Height);
+
+        await _outputCanvasContext.SetFillStyleAsync("black");
+        await _outputCanvasContext.SetFontAsync("24px verdana");
+        await _outputCanvasContext.FillTextAsync($"time: {timeStamp}", 20, 80);
     }
 }

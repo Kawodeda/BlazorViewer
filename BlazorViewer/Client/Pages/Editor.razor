@@ -9,9 +9,11 @@
 <h1>Editor</h1>
 
 <DesignViewer Width="400" Height="400" @ref="_designViewer"></DesignViewer>
-
+<h1>Editor 2</h1>
+<DesignViewer Width="500" Height="500" @ref="_designViewer2"></DesignViewer>
 @code {
     private DesignViewer _designViewer;
+    private DesignViewer _designViewer2;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -27,5 +29,6 @@
         Design design = Design.Parser.ParseFrom(response.Stream);
 
         await _designViewer.SetDesign(design);
+        await _designViewer2.SetDesign(design);
     }
 }
