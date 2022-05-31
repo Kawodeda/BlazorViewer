@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ApiClient\ApiClient.csproj" />
+    <ProjectReference Include="..\BlazorExtensions\BlazorExtensions.csproj" />
     <ProjectReference Include="..\Shared\BlazorViewer.Shared.csproj" />
   </ItemGroup>
 

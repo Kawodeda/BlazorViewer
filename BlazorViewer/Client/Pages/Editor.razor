@@ -1,0 +1,31 @@
+﻿@page "/editor"
+@using Aurigma.Design
+@using Aurigma.Design.Math
+@using ApiClient;
+@using BlazorExtensions
+
+<PageTitle>Editor</PageTitle>
+
+<h1>Editor</h1>
+
+<DesignViewer Width="400" Height="400" @ref="_designViewer"></DesignViewer>
+
+@code {
+    private DesignViewer _designViewer;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender == false)
+        {
+            return; 
+        }
+
+        IDesignsApiClient client = new DesignsApiClient("https://localhost:7091", new HttpClient());
+
+        string name = "design";
+        var response = await client.GetDesignContentAsync(name);
+        Design design = Design.Parser.ParseFrom(response.Stream);
+
+        _designViewer.SetDesign(design);
+    }
+}
