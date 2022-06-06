@@ -3,16 +3,24 @@
 @using Blazor.Extensions
 @using Blazor.Extensions.Canvas
 @using Blazor.Extensions.Canvas.Canvas2D
+@using BlazorExtensions.Commands;
+@using BlazorExtensions.InputHandling;
 @inject IJSRuntime JsRuntime
+@implements IViewer
 
 <div style="background-color: gray; position: absolute; width: @(Width)px; height: @(Height)px">
     <BECanvas Width="@Width" Height="@Height" @ref="_canvasReference"></BECanvas>
 </div>
 <div style="position: absolute; width: @(Width)px; height: @(Height)px" 
+    @onclick="OnClick"
     @onmousedown="OnMouseDown" 
     @onmouseup="OnMouseUp" 
     @onmousemove="OnMouseMove"
-    @onmouseout="OnMouseOut">
+    @onmouseover="OnMouseOver"
+    @onmouseout="OnMouseOut"
+    @onwheel="OnWheel"
+    @onkeydown="OnKeyDown"
+    @onkeyup="OnKeyUp">
     <BECanvas Width="@Width" Height="@Height" @ref="_uiCanvasReference"></BECanvas>
 </div>
 
@@ -25,21 +33,19 @@
     private Canvas2DContext _uiCanvasContext;
     private IJSObjectReference _module;
     private DotNetObjectReference<DesignViewer> _instanceRef;
+    private IInputHandlingBuilder _inputHandler;
 
     // Use ScrollX property instead
     private float _scrollX = 0f;
 
     // Use ScrollY property instead
     private float _scrollY = 0f;
-    private float _zoom = 5f;
 
-    private float _scrollbarSize = 16f;
+    private float _minZoom = 0.2f;
+    private float _maxZoom = 10f;
 
-    private bool _isHorizontalScrollbarHeld;
-    private bool _isVerticalScrollbarHeld;
-    private bool _isMouseOut;
-    private double _prevMouseX;
-    private double _prevMouseY;
+    // Use Zoom property instead
+    private float _zoom = 2.61f;
 
     [Parameter]
     public long Width { get; set; } = 256;
@@ -50,11 +56,13 @@
     [Parameter]
     public Sides ArtboardScrollMargin { get; set; } = new Sides(0f);
 
+    public float ScrollbarSize { get; } = 16f;
+
     public bool IsHorizontalScrollbarShown
     {
         get
         {
-            return CurrentArtboard.Size.Width * _zoom 
+            return CurrentArtboard.Size.Width * Zoom 
                 + ArtboardScrollMargin.Left
                 + ArtboardScrollMargin.Right > Width;
         }
@@ -64,9 +72,188 @@
     {
         get
         {
-            return CurrentArtboard.Size.Height * _zoom
+            return CurrentArtboard.Size.Height * Zoom
                 + ArtboardScrollMargin.Top
                 + ArtboardScrollMargin.Bottom > Height;
+        }
+    }
+
+    public float ViewPortWidth
+    {
+        get
+        {
+            return Width;
+        }
+    }
+
+    public float ViewPortHeight
+    {
+        get
+        {
+            return Height;
+        }
+    }
+
+    public float ScrollX
+    {
+        get
+        {
+            // Saves from incorrect scrollbar behaviour when zoom is changing
+            if(_scrollX < MinScrollX)
+            {
+                _scrollX = MinScrollX;
+            }
+            if(_scrollX > MaxScrollX)
+            {
+                _scrollX = MaxScrollX;
+            }
+
+            return _scrollX;
+        }
+        set
+        {
+            if(value < MinScrollX)
+            {
+                _scrollX = MinScrollX;
+                return;
+            }
+            if(value > MaxScrollX)
+            {
+                _scrollX = MaxScrollX;
+                return;
+            }
+
+            _scrollX = value;
+        }
+    }
+
+    public float ScrollY
+    {
+        get
+        {
+            // Saves from incorrect scrollbar behaviour when zoom is changing
+            if(_scrollY < MinScrollY)
+            {
+                _scrollY = MinScrollY;
+            }
+            if(_scrollY > MaxScrollY)
+            {
+                _scrollY = MaxScrollY;
+            }
+
+            return _scrollY;
+        }
+        set
+        {
+            if(value < MinScrollY)
+            {
+                _scrollY = MinScrollY;
+                return;
+            }
+            if(value > MaxScrollY)
+            {
+                _scrollY = MaxScrollY;
+                return;
+            }
+
+            _scrollY = value;
+        }
+    }
+
+    public float Zoom
+    {
+        get
+        {
+            return _zoom;
+        }
+        set
+        {
+            if(value < _minZoom)
+            {
+                _zoom = _minZoom;
+                return;
+            }
+            if(value > _maxZoom)
+            {
+                _zoom = _maxZoom;
+                return;
+            }            
+
+            _zoom = value;
+        }
+    }
+
+    public float ScrollableAreaHeight
+    {
+        get
+        {
+            return CurrentArtboard.Size.Height * Zoom
+                + ArtboardScrollMargin.Top
+                + ArtboardScrollMargin.Bottom;
+        }
+    }
+
+    public float ScrollableAreaWidth
+    {
+        get
+        {
+            return CurrentArtboard.Size.Width * Zoom
+                + ArtboardScrollMargin.Left
+                + ArtboardScrollMargin.Right;
+        }
+    }
+
+    public float VerticalScrollbarBodyPos
+    {
+        get
+        {
+            float topLimitY = (Height - CurrentArtboard.Size.Height * Zoom) / 2f 
+                + ScrollY - ArtboardScrollMargin.Top;
+
+            return -topLimitY * (Height - ScrollbarSize) / ScrollableAreaHeight;
+        }
+    }
+
+    public float HorizontalScrollbarBodyPos
+    {
+        get
+        {
+            float leftLimitX = (Width - CurrentArtboard.Size.Width * Zoom) / 2f 
+                + ScrollX - ArtboardScrollMargin.Left;
+
+            return -leftLimitX * (Width - ScrollbarSize) / ScrollableAreaWidth;
+        }
+    }
+
+    public float VerticalScrollbarBodyHeight
+    {
+        get
+        {
+            return Height * (Height - ScrollbarSize) / ScrollableAreaHeight;
+        }
+    }
+
+    public float HorizontalScrollbarBodyWidth
+    {
+        get
+        {
+            return Width * (Width - ScrollbarSize) / ScrollableAreaWidth;
+        }
+    }
+
+    public float VerticalScrollbarHeight
+    {
+        get
+        {
+            return ViewPortHeight - ScrollbarSize;
+        }
+    }
+
+    public float HorizontalScrollbarWidth
+    {
+        get
+        {
+            return ViewPortWidth - ScrollbarSize;
         }
     }
 
@@ -91,6 +278,32 @@
         RequestRendering();
     }
 
+    protected override void OnInitialized()
+    {
+        _inputHandler = new DesignViewerInputHandler(this);
+        _inputHandler.UseHandler<ViewPortInputHandler>();
+        _inputHandler.UseHandler<DesignInputHandler>();
+
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _outputCanvasContext = await _canvasReference.CreateCanvas2DAsync();
+            _uiCanvasContext = await _uiCanvasReference.CreateCanvas2DAsync();
+
+            _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/BlazorExtensions/DesignViewer.razor.js");
+
+            _instanceRef = DotNetObjectReference.Create(this);
+
+            RequestRendering();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
     private Surface CurrentSurface
     {
         get
@@ -111,7 +324,7 @@
     {
         get
         {
-            return (Width - (CurrentArtboard.Size.Width * _zoom)) / 2f
+            return (Width - (CurrentArtboard.Size.Width * Zoom)) / 2f
                         - ArtboardScrollMargin.Right;
         }
     }
@@ -121,7 +334,7 @@
         get
         {
             return ArtboardScrollMargin.Left
-                        - (Width - (CurrentArtboard.Size.Width * _zoom)) / 2f;
+                        - (Width - (CurrentArtboard.Size.Width * Zoom)) / 2f;
         }
     }
 
@@ -129,7 +342,7 @@
     {
         get
         {
-            return (Height - (CurrentArtboard.Size.Height * _zoom)) / 2f
+            return (Height - (CurrentArtboard.Size.Height * Zoom)) / 2f
                         - ArtboardScrollMargin.Bottom;
         }
     }
@@ -139,129 +352,8 @@
         get
         {
             return ArtboardScrollMargin.Top
-                        - (Height - (CurrentArtboard.Size.Height * _zoom)) / 2f;
+                        - (Height - (CurrentArtboard.Size.Height * Zoom)) / 2f;
         }
-    }
-
-    private float ScrollX
-    {
-        get
-        {
-            return _scrollX;
-        }
-        set
-        {
-            if(value < MinScrollX)
-            {
-                _scrollX = MinScrollX;
-                return;
-            }
-            if(value > MaxScrollX)
-            {
-                _scrollX = MaxScrollX;
-                return;
-            }
-
-            _scrollX = value;
-        }
-    }
-
-    private float ScrollY
-    {
-        get
-        {
-            return _scrollY;
-        }
-        set
-        {
-            if(value < MinScrollY)
-            {
-                _scrollY = MinScrollY;
-                return;
-            }
-            if(value > MaxScrollY)
-            {
-                _scrollY = MaxScrollY;
-                return;
-            }
-
-            _scrollY = value;
-        }
-    }
-
-    private float ScrollableAreaHeight
-    {
-        get
-        {
-            return CurrentArtboard.Size.Height * _zoom
-                + ArtboardScrollMargin.Top
-                + ArtboardScrollMargin.Bottom;
-        }
-    }
-
-    private float ScrollableAreaWidth
-    {
-        get
-        {
-            return CurrentArtboard.Size.Width * _zoom
-                + ArtboardScrollMargin.Left
-                + ArtboardScrollMargin.Right;
-        }
-    }
-
-    private float VerticalScrollbarPos
-    {
-        get
-        {
-            float topLimitY = (Height - CurrentArtboard.Size.Height * _zoom) / 2f 
-                + ScrollY - ArtboardScrollMargin.Top;
-
-            return -topLimitY * (Height - _scrollbarSize) / ScrollableAreaHeight;
-        }
-    }
-
-    private float HorizontalScrollbarPos
-    {
-        get
-        {
-            float leftLimitX = (Width - CurrentArtboard.Size.Width * _zoom) / 2f 
-                + ScrollX - ArtboardScrollMargin.Left;
-
-            return -leftLimitX * (Width - _scrollbarSize) / ScrollableAreaWidth;
-        }
-    }
-
-    private float VerticalScrollbarHeight
-    {
-        get
-        {
-            return Height * (Height - _scrollbarSize) / ScrollableAreaHeight;
-        }
-    }
-
-    private float HorizontalScrollbarWidth
-    {
-        get
-        {
-            return Width * (Width - _scrollbarSize) / ScrollableAreaWidth;
-        }
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _outputCanvasContext = await _canvasReference.CreateCanvas2DAsync();
-            _uiCanvasContext = await _uiCanvasReference.CreateCanvas2DAsync();
-
-            _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
-                "import", "./_content/BlazorExtensions/DesignViewer.razor.js");
-
-            _instanceRef = DotNetObjectReference.Create(this);
-
-            RequestRendering();
-        }
-        await base.OnAfterRenderAsync(firstRender);
     }
 
     private void RequestRendering()
@@ -274,71 +366,76 @@
         _module.InvokeVoidAsync("callRequestAnimationFrame", _instanceRef);
     }
 
+    private void OnClick(MouseEventArgs e)
+    {
+        ICommand result = _inputHandler.OnClick(e);
+        ExecuteCommand(result);
+    }
+
     private void OnMouseDown(MouseEventArgs e)
     {
-        if(e.Button == 0)
-        {
-            if(IsHorizontalScrollbarShown 
-                && e.OffsetX >= HorizontalScrollbarPos
-                && e.OffsetX <= HorizontalScrollbarPos + HorizontalScrollbarWidth
-                && e.OffsetY > Height - _scrollbarSize
-                && e.OffsetY < Height)
-            {
-                _isHorizontalScrollbarHeld = true;
-                _prevMouseX = e.OffsetX;
-            }
-            else if(IsVerticalScrollbarShown
-                && e.OffsetX >= Width - _scrollbarSize
-                && e.OffsetX <= Width
-                && e.OffsetY > VerticalScrollbarPos
-                && e.OffsetY < VerticalScrollbarPos + VerticalScrollbarHeight)
-            {
-                _isVerticalScrollbarHeld = true;
-                _prevMouseY = e.OffsetY;
-            }
-        }
+        ICommand result = _inputHandler.OnMouseDown(e);
+        ExecuteCommand(result);
     }
 
     private void OnMouseMove(MouseEventArgs e)
     {
-        if(_isHorizontalScrollbarHeld)
-        {
-            float dx = (float)(e.OffsetX - _prevMouseX);
-            ScrollX += GetScrollXFromScrollbarShift(dx);
-        }
-        else if(_isVerticalScrollbarHeld)
-        {
-            float dy = (float)(e.OffsetY - _prevMouseY);
-            ScrollY += GetScrollYFromScrollbarShift(dy);
-        }
-
-        _prevMouseX = e.OffsetX;
-        _prevMouseY = e.OffsetY;
+        ICommand result = _inputHandler.OnMouseMove(e);
+        ExecuteCommand(result);
     }
 
     private void OnMouseUp(MouseEventArgs e)
     {
-        if(e.Button == 0)
-        {
-            _isHorizontalScrollbarHeld = false;
-            _isVerticalScrollbarHeld = false;
-        }
+        ICommand result = _inputHandler.OnMouseUp(e);
+        ExecuteCommand(result);
     }
 
-    private void OnMouseOut()
+    private void OnMouseOver(MouseEventArgs e)
     {
-        _isHorizontalScrollbarHeld = false;
-        _isVerticalScrollbarHeld = false;
+        ICommand result = _inputHandler.OnMouseOver(e);
+        ExecuteCommand(result);
+    }
+
+    private void OnMouseOut(MouseEventArgs e)
+    {
+        ICommand result = _inputHandler.OnMouseOut(e);
+        ExecuteCommand(result);
+    }
+
+    private void OnWheel(WheelEventArgs e)
+    {
+        ICommand result = _inputHandler.OnWheel(e);
+        ExecuteCommand(result);
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        ICommand result = _inputHandler.OnKeyDown(e);
+        ExecuteCommand(result);
+    }
+
+    private void OnKeyUp(KeyboardEventArgs e)
+    {
+        ICommand result = _inputHandler.OnKeyUp(e);
+        ExecuteCommand(result);
+    }
+
+    private void ExecuteCommand(ICommand command)
+    {
+        if(command.CanExecute())
+        {
+            command.Execute();
+        }
     }
 
     private float GetScrollXFromScrollbarShift(float shift)
     {
-        return ScrollableAreaWidth * -shift / (Width - _scrollbarSize);
+        return ScrollableAreaWidth * -shift / (Width - ScrollbarSize);
     }
 
     private float GetScrollYFromScrollbarShift(float shift)
     {
-        return ScrollableAreaHeight * -shift / (Height - _scrollbarSize);
+        return ScrollableAreaHeight * -shift / (Height - ScrollbarSize);
     }
 
     private async Task RedrawCanvasAsync(float timeStamp)
@@ -346,14 +443,14 @@
         Size size = CurrentArtboard.Size;
         Affine2DMatrix transform = CurrentSurface.Artboards.First().Basis;
         Point shiftToCenter = new Point(
-            (Width - size.Width * _zoom) / 2, 
-            (Height - size.Height * _zoom) / 2);
+            (Width - size.Width * Zoom) / 2, 
+            (Height - size.Height * Zoom) / 2);
         Point scroll = new Point(ScrollX, ScrollY);
 
         transform = transform
             .Translate(shiftToCenter)
             .Translate(scroll)
-            .Scale(_zoom);
+            .Scale(Zoom);
 
         await _outputCanvasContext.SetTransformAsync(1, 0, 0, 1, 0, 0);
         await _outputCanvasContext.ClearRectAsync(0, 0, Width, Height);
@@ -373,7 +470,7 @@
         await _outputCanvasContext.SetFontAsync("20px verdana");
         await _outputCanvasContext.FillTextAsync($"scrollX: {ScrollX.ToString("N2")}", 10, 30);
         await _outputCanvasContext.FillTextAsync($"scrollY: {ScrollY.ToString("N2")}", 10, 50);
-        await _outputCanvasContext.FillTextAsync($"zoom: {_zoom.ToString("N2")}", 10, 70);
+        await _outputCanvasContext.FillTextAsync($"zoom: {Zoom.ToString("N2")}", 10, 70);
     }
 
     private async Task RedrawUiCanvasAsync(float timeStamp)
@@ -383,11 +480,6 @@
 
         await _uiCanvasContext.SetStrokeStyleAsync("red");
         await _uiCanvasContext.StrokeRectAsync(0, 0, Width, Height);
-
-        await _uiCanvasContext.SetFillStyleAsync("red");
-        await _uiCanvasContext.SetFontAsync("20px verdana");
-        await _uiCanvasContext.FillTextAsync($"{_isHorizontalScrollbarHeld}", 20, 50);
-        await _uiCanvasContext.FillTextAsync($"{_isVerticalScrollbarHeld}", 20, 70);
 
         if(IsHorizontalScrollbarShown)
         {
@@ -401,39 +493,39 @@
 
     private async Task RedrawVerticalScrollbarAsync()
     {
-        float verticalScrollbarX = Width - _scrollbarSize;
+        float verticalScrollbarX = Width - ScrollbarSize;
 
         await _uiCanvasContext.SetFillStyleAsync("#F4D3FF");
         await _uiCanvasContext.FillRectAsync(
             verticalScrollbarX, 
             0, 
-            _scrollbarSize, 
-            Height - _scrollbarSize);
+            ScrollbarSize, 
+            Height - ScrollbarSize);
 
         await _uiCanvasContext.SetFillStyleAsync("#C182D6");
         await _uiCanvasContext.FillRectAsync(
             verticalScrollbarX,
-            VerticalScrollbarPos,
-            _scrollbarSize,
-            VerticalScrollbarHeight);
+            VerticalScrollbarBodyPos,
+            ScrollbarSize,
+            VerticalScrollbarBodyHeight);
     }
 
     private async Task RedrawHorizontalScrollbarAsync()
     {
-        float horizontalScrollbarY = Height - _scrollbarSize;
+        float horizontalScrollbarY = Height - ScrollbarSize;
 
         await _uiCanvasContext.SetFillStyleAsync("#F4D3FF");
         await _uiCanvasContext.FillRectAsync(
             0, 
             horizontalScrollbarY, 
-            Width - _scrollbarSize, 
-            _scrollbarSize);
+            Width - ScrollbarSize, 
+            ScrollbarSize);
 
         await _uiCanvasContext.SetFillStyleAsync("#C182D6");
         await _uiCanvasContext.FillRectAsync(
-            HorizontalScrollbarPos,
+            HorizontalScrollbarBodyPos,
             horizontalScrollbarY,
-            HorizontalScrollbarWidth,
-            _scrollbarSize);
+            HorizontalScrollbarBodyWidth,
+            ScrollbarSize);
     }
 }
