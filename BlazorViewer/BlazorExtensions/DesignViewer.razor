@@ -39,6 +39,7 @@
     private Canvas2DContext _uiCanvasContext;
     private IJSObjectReference _module;
     private DotNetObjectReference<DesignViewer> _instanceRef;
+    private Renderer _renderer;
     private IInputHandlingBuilder _inputHandler;
     private IViewport _viewport;
 
@@ -138,6 +139,8 @@
         {
             _outputCanvasContext = await _canvasReference.CreateCanvas2DAsync();
             _uiCanvasContext = await _uiCanvasReference.CreateCanvas2DAsync();
+
+            _renderer = new Renderer(_outputCanvasContext, _design, _currentSurfaceIndex);
 
             _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
                 "import", "./_content/BlazorExtensions/DesignViewer.razor.js");
@@ -244,12 +247,12 @@
         await _outputCanvasContext.ClearRectAsync(0, 0, Width, Height);
 
         await _outputCanvasContext.SetTransformAsync(
-        transform.M11,
-        transform.M12,
-        transform.M21,
-        transform.M22,
-        transform.D1,
-        transform.D2);      
+            transform.M11,
+            transform.M12,
+            transform.M21,
+            transform.M22,
+            transform.D1,
+            transform.D2);
 
         await _outputCanvasContext.SetFillStyleAsync("lightgray");
         await _outputCanvasContext.FillRectAsync(0, 0, size.Width, size.Height);
