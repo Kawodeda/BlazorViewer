@@ -1,16 +1,13 @@
-﻿using BlazorExtensions.InputHandling;
+﻿using BlazorExtensions.Viewports;
 
 namespace BlazorExtensions.Commands.Parameters
 {
     public class ZoomCommandParams
     {
-        public IZoomable Zoomable { get; set; }
-
         public float DeltaZoom { get; set; }
 
-        public ZoomCommandParams(IZoomable zoomable, float zoom)
+        public ZoomCommandParams(float zoom)
         {
-            Zoomable = zoomable;
             DeltaZoom = zoom;
         }
     }

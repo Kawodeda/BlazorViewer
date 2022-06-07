@@ -1,4 +1,4 @@
-﻿namespace BlazorExtensions.InputHandling
+﻿namespace BlazorExtensions.Viewports
 {
     public interface IScrollable
     {

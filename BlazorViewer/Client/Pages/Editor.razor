@@ -22,7 +22,7 @@
 
         IDesignsApiClient client = new DesignsApiClient("https://localhost:7091", new HttpClient());
 
-        string name = "design_18_05_2022_19_50_04";
+        string name = "design_06_06_2022_22_32_24";
         var response = await client.GetDesignContentAsync(name);
         Design design = Design.Parser.ParseFrom(response.Stream);
 

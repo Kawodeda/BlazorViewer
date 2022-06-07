@@ -72,15 +72,7 @@ namespace BlazorExtensions.InputHandling
 
         protected virtual ICommand HandleByDefault(Func<ICommand?> next) 
         {
-            ICommand result = new EmptyCommandResult();
-
-            ICommand? nextResult = next?.Invoke();
-            if (nextResult != null)
-            {
-                result = nextResult;
-            }
-
-            return result;
+            return next?.Invoke() ?? new EmptyCommand();
         }
     }
 }

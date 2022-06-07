@@ -1,4 +1,6 @@
-﻿namespace BlazorExtensions.InputHandling
+﻿using Aurigma.Design.Math;
+
+namespace BlazorExtensions.Viewports
 {
     public interface IScrollbar : IScrollable
     {
@@ -8,9 +10,11 @@
 
         public float ScrollbarSize { get; }
 
-        public float ScrollableAreaHeight { get; }
+        public Size ContentSize { get; set; }
 
-        public float ScrollableAreaWidth { get; }
+        public Sides ContentScrollMargin { get; set; }
+
+        public Size ScrollableAreaSize { get; }
 
         public float VerticalScrollbarBodyPos { get; }
 

@@ -1,10 +1,12 @@
-﻿namespace BlazorExtensions.Commands
+﻿using BlazorExtensions.Commands.Context;
+
+namespace BlazorExtensions.Commands
 {
-    public class MultipleCommandResult : ICommand
+    public class CompositeCommand : ICommand
     {
         private readonly List<ICommand> _commands;
 
-        public MultipleCommandResult(params ICommand[] commands)
+        public CompositeCommand(params ICommand[] commands)
         {
             _commands = new List<ICommand>(commands);
         }
@@ -19,13 +21,13 @@
             return true;
         }
 
-        public void Execute()
+        public void Execute(IExecutionContext context)
         {
             foreach (ICommand command in _commands)
             {
                 if (command.CanExecute())
                 {
-                    command.Execute();
+                    command.Execute(context);
                 }
             }
         }

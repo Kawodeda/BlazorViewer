@@ -1,4 +1,5 @@
-﻿using BlazorExtensions.Commands.Parameters;
+﻿using BlazorExtensions.Commands.Context;
+using BlazorExtensions.Commands.Parameters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,9 +22,9 @@ namespace BlazorExtensions.Commands
             return true;
         }
 
-        public void Execute()
+        public void Execute(IExecutionContext context)
         {
-            _params.Zoomable.Zoom += _params.DeltaZoom;
+            context.Viewport.Zoom += _params.DeltaZoom;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using BlazorExtensions.Commands.Parameters;
+﻿using BlazorExtensions.Commands.Context;
+using BlazorExtensions.Commands.Parameters;
 
 namespace BlazorExtensions.Commands
 {
@@ -16,10 +17,10 @@ namespace BlazorExtensions.Commands
             return true;
         }
 
-        public void Execute()
+        public void Execute(IExecutionContext context)
         {
-            _params.Scrollable.ScrollX += _params.DeltaScrollX;
-            _params.Scrollable.ScrollY += _params.DeltaScrollY;
+            context.Viewport.ScrollX += _params.DeltaScrollX;
+            context.Viewport.ScrollY += _params.DeltaScrollY;
         }
     }
 }

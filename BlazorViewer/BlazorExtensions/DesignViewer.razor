@@ -4,7 +4,9 @@
 @using Blazor.Extensions.Canvas
 @using Blazor.Extensions.Canvas.Canvas2D
 @using BlazorExtensions.Commands;
+@using BlazorExtensions.Commands.Context;
 @using BlazorExtensions.InputHandling;
+@using BlazorExtensions.Viewports;
 @inject IJSRuntime JsRuntime
 @implements IViewer
 
@@ -34,18 +36,7 @@
     private IJSObjectReference _module;
     private DotNetObjectReference<DesignViewer> _instanceRef;
     private IInputHandlingBuilder _inputHandler;
-
-    // Use ScrollX property instead
-    private float _scrollX = 0f;
-
-    // Use ScrollY property instead
-    private float _scrollY = 0f;
-
-    private float _minZoom = 0.2f;
-    private float _maxZoom = 10f;
-
-    // Use Zoom property instead
-    private float _zoom = 2.61f;
+    private IViewport _viewport;
 
     [Parameter]
     public long Width { get; set; } = 256;
@@ -56,204 +47,25 @@
     [Parameter]
     public Sides ArtboardScrollMargin { get; set; } = new Sides(0f);
 
-    public float ScrollbarSize { get; } = 16f;
-
-    public bool IsHorizontalScrollbarShown
+    public IViewport Viewport
     {
         get
         {
-            return CurrentArtboard.Size.Width * Zoom 
-                + ArtboardScrollMargin.Left
-                + ArtboardScrollMargin.Right > Width;
-        }
-    }
-
-    public bool IsVerticalScrollbarShown
-    {
-        get
-        {
-            return CurrentArtboard.Size.Height * Zoom
-                + ArtboardScrollMargin.Top
-                + ArtboardScrollMargin.Bottom > Height;
-        }
-    }
-
-    public float ViewPortWidth
-    {
-        get
-        {
-            return Width;
-        }
-    }
-
-    public float ViewPortHeight
-    {
-        get
-        {
-            return Height;
-        }
-    }
-
-    public float ScrollX
-    {
-        get
-        {
-            // Saves from incorrect scrollbar behaviour when zoom is changing
-            if(_scrollX < MinScrollX)
+            if(_viewport == null)
             {
-                _scrollX = MinScrollX;
-            }
-            if(_scrollX > MaxScrollX)
-            {
-                _scrollX = MaxScrollX;
+                var viewportSize = new Size()
+                {
+                    Width = Width,
+                    Height = Height
+                };
+        
+                _viewport = new Viewport(
+                    viewportSize, 
+                    new Size(), 
+                    ArtboardScrollMargin);
             }
 
-            return _scrollX;
-        }
-        set
-        {
-            if(value < MinScrollX)
-            {
-                _scrollX = MinScrollX;
-                return;
-            }
-            if(value > MaxScrollX)
-            {
-                _scrollX = MaxScrollX;
-                return;
-            }
-
-            _scrollX = value;
-        }
-    }
-
-    public float ScrollY
-    {
-        get
-        {
-            // Saves from incorrect scrollbar behaviour when zoom is changing
-            if(_scrollY < MinScrollY)
-            {
-                _scrollY = MinScrollY;
-            }
-            if(_scrollY > MaxScrollY)
-            {
-                _scrollY = MaxScrollY;
-            }
-
-            return _scrollY;
-        }
-        set
-        {
-            if(value < MinScrollY)
-            {
-                _scrollY = MinScrollY;
-                return;
-            }
-            if(value > MaxScrollY)
-            {
-                _scrollY = MaxScrollY;
-                return;
-            }
-
-            _scrollY = value;
-        }
-    }
-
-    public float Zoom
-    {
-        get
-        {
-            return _zoom;
-        }
-        set
-        {
-            if(value < _minZoom)
-            {
-                _zoom = _minZoom;
-                return;
-            }
-            if(value > _maxZoom)
-            {
-                _zoom = _maxZoom;
-                return;
-            }            
-
-            _zoom = value;
-        }
-    }
-
-    public float ScrollableAreaHeight
-    {
-        get
-        {
-            return CurrentArtboard.Size.Height * Zoom
-                + ArtboardScrollMargin.Top
-                + ArtboardScrollMargin.Bottom;
-        }
-    }
-
-    public float ScrollableAreaWidth
-    {
-        get
-        {
-            return CurrentArtboard.Size.Width * Zoom
-                + ArtboardScrollMargin.Left
-                + ArtboardScrollMargin.Right;
-        }
-    }
-
-    public float VerticalScrollbarBodyPos
-    {
-        get
-        {
-            float topLimitY = (Height - CurrentArtboard.Size.Height * Zoom) / 2f 
-                + ScrollY - ArtboardScrollMargin.Top;
-
-            return -topLimitY * (Height - ScrollbarSize) / ScrollableAreaHeight;
-        }
-    }
-
-    public float HorizontalScrollbarBodyPos
-    {
-        get
-        {
-            float leftLimitX = (Width - CurrentArtboard.Size.Width * Zoom) / 2f 
-                + ScrollX - ArtboardScrollMargin.Left;
-
-            return -leftLimitX * (Width - ScrollbarSize) / ScrollableAreaWidth;
-        }
-    }
-
-    public float VerticalScrollbarBodyHeight
-    {
-        get
-        {
-            return Height * (Height - ScrollbarSize) / ScrollableAreaHeight;
-        }
-    }
-
-    public float HorizontalScrollbarBodyWidth
-    {
-        get
-        {
-            return Width * (Width - ScrollbarSize) / ScrollableAreaWidth;
-        }
-    }
-
-    public float VerticalScrollbarHeight
-    {
-        get
-        {
-            return ViewPortHeight - ScrollbarSize;
-        }
-    }
-
-    public float HorizontalScrollbarWidth
-    {
-        get
-        {
-            return ViewPortWidth - ScrollbarSize;
+            return _viewport;
         }
     }
 
@@ -269,12 +81,14 @@
     public void SetDesign(Design design)
     {
         _design = design;
+        _viewport.ContentSize = CurrentArtboard.ActualSize;
         RequestRendering();
     }
 
     public void SetCurrentSurfaceIndex(int index)
     {
-        _currentSurfaceIndex = index;       
+        _currentSurfaceIndex = index;
+        _viewport.ContentSize = CurrentArtboard.ActualSize;
         RequestRendering();
     }
 
@@ -317,42 +131,6 @@
         get
         {
             return CurrentSurface.Artboards.First();
-        }
-    }
-
-    private float MinScrollX
-    {
-        get
-        {
-            return (Width - (CurrentArtboard.Size.Width * Zoom)) / 2f
-                        - ArtboardScrollMargin.Right;
-        }
-    }
-
-    private float MaxScrollX
-    {
-        get
-        {
-            return ArtboardScrollMargin.Left
-                        - (Width - (CurrentArtboard.Size.Width * Zoom)) / 2f;
-        }
-    }
-
-    private float MinScrollY
-    {
-        get
-        {
-            return (Height - (CurrentArtboard.Size.Height * Zoom)) / 2f
-                        - ArtboardScrollMargin.Bottom;
-        }
-    }
-
-    private float MaxScrollY
-    {
-        get
-        {
-            return ArtboardScrollMargin.Top
-                        - (Height - (CurrentArtboard.Size.Height * Zoom)) / 2f;
         }
     }
 
@@ -424,18 +202,8 @@
     {
         if(command.CanExecute())
         {
-            command.Execute();
+            command.Execute(new ExecutionContext(_viewport));
         }
-    }
-
-    private float GetScrollXFromScrollbarShift(float shift)
-    {
-        return ScrollableAreaWidth * -shift / (Width - ScrollbarSize);
-    }
-
-    private float GetScrollYFromScrollbarShift(float shift)
-    {
-        return ScrollableAreaHeight * -shift / (Height - ScrollbarSize);
     }
 
     private async Task RedrawCanvasAsync(float timeStamp)
@@ -443,14 +211,14 @@
         Size size = CurrentArtboard.Size;
         Affine2DMatrix transform = CurrentSurface.Artboards.First().Basis;
         Point shiftToCenter = new Point(
-            (Width - size.Width * Zoom) / 2, 
-            (Height - size.Height * Zoom) / 2);
-        Point scroll = new Point(ScrollX, ScrollY);
+            (Width - size.Width * _viewport.Zoom) / 2, 
+            (Height - size.Height * _viewport.Zoom) / 2);
+        Point scroll = new Point(_viewport.ScrollX, _viewport.ScrollY);
 
         transform = transform
             .Translate(shiftToCenter)
             .Translate(scroll)
-            .Scale(Zoom);
+            .Scale(_viewport.Zoom);
 
         await _outputCanvasContext.SetTransformAsync(1, 0, 0, 1, 0, 0);
         await _outputCanvasContext.ClearRectAsync(0, 0, Width, Height);
@@ -468,9 +236,9 @@
 
         await _outputCanvasContext.SetFillStyleAsync("black");
         await _outputCanvasContext.SetFontAsync("20px verdana");
-        await _outputCanvasContext.FillTextAsync($"scrollX: {ScrollX.ToString("N2")}", 10, 30);
-        await _outputCanvasContext.FillTextAsync($"scrollY: {ScrollY.ToString("N2")}", 10, 50);
-        await _outputCanvasContext.FillTextAsync($"zoom: {Zoom.ToString("N2")}", 10, 70);
+        await _outputCanvasContext.FillTextAsync($"scrollX: {_viewport.ScrollX.ToString("N2")}", 10, 30);
+        await _outputCanvasContext.FillTextAsync($"scrollY: {_viewport.ScrollY.ToString("N2")}", 10, 50);
+        await _outputCanvasContext.FillTextAsync($"zoom: {_viewport.Zoom.ToString("N2")}", 10, 70);
     }
 
     private async Task RedrawUiCanvasAsync(float timeStamp)
@@ -481,11 +249,11 @@
         await _uiCanvasContext.SetStrokeStyleAsync("red");
         await _uiCanvasContext.StrokeRectAsync(0, 0, Width, Height);
 
-        if(IsHorizontalScrollbarShown)
+        if(_viewport.IsHorizontalScrollbarShown)
         {
             await RedrawHorizontalScrollbarAsync();
         }
-        if(IsVerticalScrollbarShown)
+        if(_viewport.IsVerticalScrollbarShown)
         {
             await RedrawVerticalScrollbarAsync();
         }    
@@ -493,39 +261,39 @@
 
     private async Task RedrawVerticalScrollbarAsync()
     {
-        float verticalScrollbarX = Width - ScrollbarSize;
+        float verticalScrollbarX = Width - _viewport.ScrollbarSize;
 
         await _uiCanvasContext.SetFillStyleAsync("#F4D3FF");
         await _uiCanvasContext.FillRectAsync(
             verticalScrollbarX, 
             0, 
-            ScrollbarSize, 
-            Height - ScrollbarSize);
+            _viewport.ScrollbarSize, 
+            Height - _viewport.ScrollbarSize);
 
         await _uiCanvasContext.SetFillStyleAsync("#C182D6");
         await _uiCanvasContext.FillRectAsync(
             verticalScrollbarX,
-            VerticalScrollbarBodyPos,
-            ScrollbarSize,
-            VerticalScrollbarBodyHeight);
+            _viewport.VerticalScrollbarBodyPos,
+            _viewport.ScrollbarSize,
+            _viewport.VerticalScrollbarBodyHeight);
     }
 
     private async Task RedrawHorizontalScrollbarAsync()
     {
-        float horizontalScrollbarY = Height - ScrollbarSize;
+        float horizontalScrollbarY = Height - _viewport.ScrollbarSize;
 
         await _uiCanvasContext.SetFillStyleAsync("#F4D3FF");
         await _uiCanvasContext.FillRectAsync(
             0, 
             horizontalScrollbarY, 
-            Width - ScrollbarSize, 
-            ScrollbarSize);
+            Width - _viewport.ScrollbarSize, 
+            _viewport.ScrollbarSize);
 
         await _uiCanvasContext.SetFillStyleAsync("#C182D6");
         await _uiCanvasContext.FillRectAsync(
-            HorizontalScrollbarBodyPos,
+            _viewport.HorizontalScrollbarBodyPos,
             horizontalScrollbarY,
-            HorizontalScrollbarBodyWidth,
-            ScrollbarSize);
+            _viewport.HorizontalScrollbarBodyWidth,
+            _viewport.ScrollbarSize);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using BlazorExtensions.Commands;
 using BlazorExtensions.Commands.Parameters;
+using BlazorExtensions.Viewports;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace BlazorExtensions.InputHandling
@@ -13,20 +14,25 @@ namespace BlazorExtensions.InputHandling
 
     public class ViewPortInputHandler : InputHandlerBase
     {
-        private IViewPort _viewPort;
+        private IViewport _viewPort;
         private ViewPortState _state;
         private float _prevMouseX;
         private float _prevMouseY;
 
-        public ViewPortInputHandler(IViewPort viewPort)
+        public ViewPortInputHandler(IViewport viewPort)
         {
             _viewPort = viewPort;
             _state = ViewPortState.Default;
         }
 
+        // Saves from IInputHandlingBuilder failure when it tries
+        // to create an instance of ViewPortInputHandler
+        public ViewPortInputHandler(IViewer viewer)
+            : this(viewer.Viewport) { }
+
         public override ICommand OnMouseDown(MouseEventArgs e)
         {
-            ICommand result = new EmptyCommandResult();
+            ICommand result = new EmptyCommand();
             float mouseX = (float)e.OffsetX;
             float mouseY = (float)e.OffsetY;
 
@@ -54,20 +60,22 @@ namespace BlazorExtensions.InputHandling
 
         public override ICommand OnMouseMove(MouseEventArgs e)
         {
-            ICommand result = new EmptyCommandResult();
+            ICommand result = new EmptyCommand();
 
             switch (_state)
             {
                 case ViewPortState.ScrollX:
                     float dx = (float)(e.OffsetX - _prevMouseX);
-                    result = new ScrollbarDragCommand(
-                        new ScrollbarDragCommandParams(_viewPort, dx, 0f));
+                    float dScrollX = GetScrollXFromScrollbarShift(dx);
+                    result = new ScrollCommand(
+                        new ScrollCommandParams(dScrollX, 0f));
                     break;
 
                 case ViewPortState.ScrollY:
                     float dy = (float)(e.OffsetY - _prevMouseY);
-                    result = new ScrollbarDragCommand(
-                        new ScrollbarDragCommandParams(_viewPort, 0f, dy));
+                    float dScrollY = GetScrollYFromScrollbarShift(dy);
+                    result = new ScrollCommand(
+                        new ScrollCommandParams(0f, dScrollY));
                     break;
 
                 default:
@@ -102,18 +110,18 @@ namespace BlazorExtensions.InputHandling
         public override ICommand OnWheel(WheelEventArgs e)
         {
             const float zoomFactor = -0.0008f;
-            const float scrollFactor = 0.08f;
+            const float scrollFactor = -0.08f;
 
             if (e.ShiftKey)
             {
                 float deltaZoom = (float)e.DeltaY * zoomFactor;
                 return new ZoomCommand(
-                    new ZoomCommandParams(_viewPort, deltaZoom));
+                    new ZoomCommandParams(deltaZoom));
             }
 
             float yShift = (float)e.DeltaY * scrollFactor;
-            return new ScrollbarDragCommand(
-                new ScrollbarDragCommandParams(_viewPort, 0f, yShift));
+            return new ScrollCommand(
+                new ScrollCommandParams(0f, yShift));
         }
 
         private ICommand? HandleHorizontalScrollbarMouseDown(MouseEventArgs e)
@@ -132,11 +140,12 @@ namespace BlazorExtensions.InputHandling
 
                     if (IsWithinHorizontalScrollbarBody(mouseX, mouseY) == false)
                     {
-                        float xShift = mouseX - _viewPort.HorizontalScrollbarBodyPos;
-                        var @params
-                            = new ScrollbarDragCommandParams(_viewPort, xShift, 0f);
+                        float dx = mouseX - _viewPort.HorizontalScrollbarBodyPos;
+                        float dScrollX = GetScrollXFromScrollbarShift(dx);
 
-                        result = new ScrollbarDragCommand(@params);
+                        result = new ScrollCommand(
+                            new ScrollCommandParams(dScrollX, 0f));
+
                         return result;
                     }
                 }
@@ -161,11 +170,12 @@ namespace BlazorExtensions.InputHandling
 
                     if (IsWithinVerticalScrollbarBody(mouseX, mouseY) == false)
                     {
-                        float yShift = mouseY - _viewPort.VerticalScrollbarBodyPos;
-                        var @params
-                            = new ScrollbarDragCommandParams(_viewPort, 0f, yShift);
+                        float dy = mouseY - _viewPort.VerticalScrollbarBodyPos;
+                        float dScrollY = GetScrollYFromScrollbarShift(dy);
 
-                        result = new ScrollbarDragCommand(@params);
+                        result = new ScrollCommand(
+                            new ScrollCommandParams(0f, dScrollY));
+
                         return result;
                     }
                 }
@@ -174,34 +184,46 @@ namespace BlazorExtensions.InputHandling
             return result;
         }
 
+        private float GetScrollXFromScrollbarShift(float shift)
+        {
+            return _viewPort.ScrollableAreaSize.Width * -shift
+                / _viewPort.HorizontalScrollbarWidth;
+        }
+
+        private float GetScrollYFromScrollbarShift(float shift)
+        {
+            return _viewPort.ScrollableAreaSize.Height * -shift
+                / _viewPort.VerticalScrollbarHeight;
+        }
+
         private bool IsWithinHorizontalScrollbar(float x, float y)
         {
             return x >= 0
-                && x <= _viewPort.ViewPortWidth - _viewPort.ScrollbarSize
-                && y > _viewPort.ViewPortHeight - _viewPort.ScrollbarSize
-                && y < _viewPort.ViewPortHeight;
+                && x <= _viewPort.Size.Width - _viewPort.ScrollbarSize
+                && y > _viewPort.Size.Height - _viewPort.ScrollbarSize
+                && y < _viewPort.Size.Height;
         }
 
         private bool IsWithinVerticalScrollbar(float x, float y)
         {
-            return x >= _viewPort.ViewPortWidth - _viewPort.ScrollbarSize
-                && x <= _viewPort.ViewPortWidth
+            return x >= _viewPort.Size.Width - _viewPort.ScrollbarSize
+                && x <= _viewPort.Size.Width
                 && y > 0
-                && y < _viewPort.ViewPortHeight - _viewPort.ScrollbarSize;
+                && y < _viewPort.Size.Height - _viewPort.ScrollbarSize;
         }
 
         private bool IsWithinHorizontalScrollbarBody(float x, float y)
         {
             return x >= _viewPort.HorizontalScrollbarBodyPos
                 && x <= _viewPort.HorizontalScrollbarBodyPos + _viewPort.HorizontalScrollbarBodyWidth
-                && y > _viewPort.ViewPortHeight - _viewPort.ScrollbarSize
-                && y < _viewPort.ViewPortHeight;
+                && y > _viewPort.Size.Height - _viewPort.ScrollbarSize
+                && y < _viewPort.Size.Height;
         }
 
         private bool IsWithinVerticalScrollbarBody(float x, float y)
         {
-            return x >= _viewPort.ViewPortWidth - _viewPort.ScrollbarSize
-                && x <= _viewPort.ViewPortWidth
+            return x >= _viewPort.Size.Width - _viewPort.ScrollbarSize
+                && x <= _viewPort.Size.Width
                 && y > _viewPort.VerticalScrollbarBodyPos
                 && y < _viewPort.VerticalScrollbarBodyPos + _viewPort.VerticalScrollbarBodyHeight;
         }
