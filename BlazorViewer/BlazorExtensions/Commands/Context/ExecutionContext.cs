@@ -4,11 +4,19 @@ namespace BlazorExtensions.Commands.Context
 {
     public class ExecutionContext : IExecutionContext
     {
-        public IViewport Viewport { get; set; }
+        public IDesignViewer DesignViewer { get; set; }
 
-        public ExecutionContext(IViewport viewport)
+        public IViewport Viewport
         {
-            Viewport = viewport;
+            get
+            {
+                return DesignViewer.Viewport;
+            }
+        }
+
+        public ExecutionContext(IDesignViewer designViewer)
+        {
+            DesignViewer = designViewer;
         }
     }
 }

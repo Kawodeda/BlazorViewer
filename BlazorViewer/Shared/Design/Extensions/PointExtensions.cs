@@ -42,6 +42,11 @@ namespace Aurigma.Design.Math
             return Multiply(matrix, point);
         }
 
+        public static Point operator +(Point a, Point b)
+        {
+            return a.Translate(b);
+        }
+
         public Point MultiplyBy(Affine2DMatrix matrix)
         {
             return Multiply(this, matrix);
