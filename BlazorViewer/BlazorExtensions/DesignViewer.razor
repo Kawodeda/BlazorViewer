@@ -8,7 +8,7 @@
 @using BlazorExtensions.InputHandling;
 @using BlazorExtensions.Viewports;
 @inject IJSRuntime JsRuntime
-@implements IViewer
+@implements IDesignViewer
 
 <div style="background-color: gray; position: absolute; width: @(Width)px; height: @(Height)px">
     <BECanvas Width="@Width" Height="@Height" @ref="_canvasReference"></BECanvas>
@@ -58,7 +58,7 @@
                     Width = Width,
                     Height = Height
                 };
-        
+
                 _viewport = new Viewport(
                     viewportSize, 
                     new Size(), 
@@ -66,6 +66,33 @@
             }
 
             return _viewport;
+        }
+    }
+
+    public Surface CurrentSurface
+    {
+        get
+        {
+            return _design.Surfaces[_currentSurfaceIndex];
+        }
+    }
+
+    public Element? SelectedElement { get; set; }
+
+    public Affine2DMatrix Transform
+    {
+        get
+        {
+            Size size = CurrentArtboard.Size;
+            Point shiftToCenter = new Point(
+                (Width - size.Width * _viewport.Zoom) / 2, 
+                (Height - size.Height * _viewport.Zoom) / 2);
+            Point scroll = new Point(_viewport.ScrollX, _viewport.ScrollY);
+
+            return CurrentArtboard.Basis
+                .Translate(shiftToCenter)
+                .Translate(scroll)
+                .Scale(_viewport.Zoom);
         }
     }
 
@@ -116,14 +143,6 @@
             RequestRendering();
         }
         await base.OnAfterRenderAsync(firstRender);
-    }
-
-    private Surface CurrentSurface
-    {
-        get
-        {
-            return _design.Surfaces[_currentSurfaceIndex];
-        }
     }
 
     private Artboard CurrentArtboard
@@ -202,23 +221,14 @@
     {
         if(command.CanExecute())
         {
-            command.Execute(new ExecutionContext(_viewport));
+            command.Execute(new ExecutionContext(this));
         }
     }
 
     private async Task RedrawCanvasAsync(float timeStamp)
     {
         Size size = CurrentArtboard.Size;
-        Affine2DMatrix transform = CurrentSurface.Artboards.First().Basis;
-        Point shiftToCenter = new Point(
-            (Width - size.Width * _viewport.Zoom) / 2, 
-            (Height - size.Height * _viewport.Zoom) / 2);
-        Point scroll = new Point(_viewport.ScrollX, _viewport.ScrollY);
-
-        transform = transform
-            .Translate(shiftToCenter)
-            .Translate(scroll)
-            .Scale(_viewport.Zoom);
+        Affine2DMatrix transform = Transform;
 
         await _outputCanvasContext.SetTransformAsync(1, 0, 0, 1, 0, 0);
         await _outputCanvasContext.ClearRectAsync(0, 0, Width, Height);
@@ -256,7 +266,12 @@
         if(_viewport.IsVerticalScrollbarShown)
         {
             await RedrawVerticalScrollbarAsync();
-        }    
+        }   
+
+        await _uiCanvasContext.SetFillStyleAsync("black");
+        await _uiCanvasContext.SetFontAsync("20px verdana");
+        var selected = SelectedElement?.Content.ClosedVector.Controls.ControlsCase;
+        await _uiCanvasContext.FillTextAsync($"SelectedElement: {selected}", 10, 60);
     }
 
     private async Task RedrawVerticalScrollbarAsync()

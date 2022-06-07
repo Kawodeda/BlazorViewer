@@ -5,16 +5,16 @@ namespace BlazorExtensions.InputHandling
 {
     public class DesignViewerInputHandler : InputHandlerBase, IInputHandlingBuilder
     {
-        private IViewer _viewer;
+        private IDesignViewer _designViewer;
 
-        public DesignViewerInputHandler(IViewer viewer)
+        public DesignViewerInputHandler(IDesignViewer designViewer)
         {
-            _viewer = viewer;
+            _designViewer = designViewer;
         }
 
         public void UseHandler<T>() where T : InputHandlerBase
         {
-            Next = (T?)Activator.CreateInstance(typeof(T), new object[] { _viewer});
+            Next = (T?)Activator.CreateInstance(typeof(T), new object[] { _designViewer});
         }
     }
 }
