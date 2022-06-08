@@ -2,6 +2,7 @@
 using Aurigma.Design.Content.Controls;
 using Aurigma.Design.Math;
 using BlazorExtensions.Commands;
+using BlazorExtensions.Commands.Parameters;
 using Microsoft.AspNetCore.Components.Web;
 
 namespace BlazorExtensions.InputHandling
@@ -16,6 +17,8 @@ namespace BlazorExtensions.InputHandling
     {
         private IDesignViewer _designViewer;
         private DesignState _state;
+        private float _prevMouseX;
+        private float _prevMouseY;
 
         public DesignInputHandler(IDesignViewer designViewer)
         {
@@ -25,11 +28,11 @@ namespace BlazorExtensions.InputHandling
 
         public override ICommand OnClick(MouseEventArgs e)
         {
-            float mouseX = (float)e.OffsetX;
-            float mouseY = (float)e.OffsetY;
-
             if (e.Button == 0)
             {
+                float mouseX = (float)e.OffsetX;
+                float mouseY = (float)e.OffsetY;
+
                 Element? element = _designViewer.CurrentSurface.Layers
                     .SelectMany(x => x.Elements)
                     .FirstOrDefault(x => IsWithinElement(x, mouseX, mouseY));
@@ -41,6 +44,64 @@ namespace BlazorExtensions.InputHandling
             }
 
             return base.OnClick(e);
+        }
+
+        public override ICommand OnMouseDown(MouseEventArgs e)
+        {           
+            if (_designViewer.SelectedElement == null)
+            {
+                return base.OnMouseDown(e);
+            }
+
+            float mouseX = (float)e.OffsetX;
+            float mouseY = (float)e.OffsetY;
+            if (IsWithinElement(_designViewer.SelectedElement, mouseX, mouseY)
+                == false)
+            {
+                return base.OnMouseDown(e);
+            }
+
+            _state = DesignState.Translate;
+            _prevMouseX = mouseX;
+            _prevMouseY = mouseY;
+
+            return new EmptyCommand();
+        }
+
+        public override ICommand OnMouseMove(MouseEventArgs e)
+        {
+            switch (_state)
+            {
+                case DesignState.Translate:
+                    if(_designViewer.SelectedElement == null)
+                    {
+                        return base.OnMouseMove(e);
+                    }
+
+                    float mouseX = (float)e.OffsetX;
+                    float mouseY = (float)e.OffsetY;
+                    var shift = new Point(
+                        (mouseX - _prevMouseX) / _designViewer.Transform.M11, 
+                        (mouseY - _prevMouseY) / _designViewer.Transform.M22);
+
+                    _prevMouseX = mouseX;
+                    _prevMouseY = mouseY;
+
+                    return new TranslateElementCommand(
+                        new TranslateElementCommandParams(
+                            _designViewer.SelectedElement,
+                            shift));
+
+                default:
+                    return base.OnMouseMove(e);
+            }
+        }
+
+        public override ICommand OnMouseUp(MouseEventArgs e)
+        {
+            _state = DesignState.Default;
+
+            return base.OnMouseUp(e);
         }
 
         public override ICommand OnKeyDown(KeyboardEventArgs e)
