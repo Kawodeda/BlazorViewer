@@ -13,7 +13,9 @@
 <div style="background-color: gray; position: absolute; width: @(Width)px; height: @(Height)px">
     <BECanvas Width="@Width" Height="@Height" @ref="_canvasReference"></BECanvas>
 </div>
-<div style="position: absolute; width: @(Width)px; height: @(Height)px" 
+
+<!--Doesn't capture keyboard events without tabindex-->
+<div style="position: absolute; width: @(Width)px; height: @(Height)px"
     tabindex="0"
     @onclick="OnClick"
     @onmousedown="OnMouseDown" 
@@ -204,6 +206,12 @@
     private void OnWheel(WheelEventArgs e)
     {
         ICommand result = _inputHandler.OnWheel(e);
+        ExecuteCommand(result);
+    }
+
+    private void OnKeyPress(KeyboardEventArgs e)
+    {
+        ICommand result = _inputHandler.OnKeyPress(e);
         ExecuteCommand(result);
     }
 

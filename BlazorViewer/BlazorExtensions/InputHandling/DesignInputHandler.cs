@@ -171,6 +171,21 @@ namespace BlazorExtensions.InputHandling
             return new EmptyCommand();
         }
 
+        public override ICommand OnKeyDown(KeyboardEventArgs e)
+        {
+            if (e.Code == "Delete")
+            {
+                if (_designViewer.SelectedElement != null)
+                {
+                    return new CompositeCommand(
+                        new DeleteElementCommand(_designViewer.SelectedElement),
+                        new ChangeSelectionCommand(null));
+                }
+            }
+
+            return base.OnKeyDown(e);
+        }
+
         private bool IsWithinElement(Element element, float x, float y)
         {
             RectangleControls rectangle 
