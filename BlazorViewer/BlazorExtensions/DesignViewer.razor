@@ -248,7 +248,7 @@
         await _outputCanvasContext.SetFontAsync("20px verdana");
         await _outputCanvasContext.FillTextAsync($"scrollX: {_viewport.ScrollX.ToString("N2")}", 10, 30);
         await _outputCanvasContext.FillTextAsync($"scrollY: {_viewport.ScrollY.ToString("N2")}", 10, 50);
-        await _outputCanvasContext.FillTextAsync($"zoom: {_viewport.Zoom.ToString("N2")}", 10, 70);
+        await _outputCanvasContext.FillTextAsync($"zoom: {_viewport.Zoom.ToString("N2")}", 10, 70);      
     }
 
     private async Task RedrawUiCanvasAsync(float timeStamp)

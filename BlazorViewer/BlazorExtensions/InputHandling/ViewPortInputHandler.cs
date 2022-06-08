@@ -91,7 +91,7 @@ namespace BlazorExtensions.InputHandling
                     break;
 
                 default:
-                    ICommand? nextResult = Next?.OnMouseDown(e);
+                    ICommand? nextResult = Next?.OnMouseMove(e);
                     if (nextResult != null)
                     {
                         result = nextResult;
@@ -165,6 +165,8 @@ namespace BlazorExtensions.InputHandling
 
                         return result;
                     }
+
+                    return new EmptyCommand();
                 }
             }
 
@@ -195,6 +197,8 @@ namespace BlazorExtensions.InputHandling
 
                         return result;
                     }
+
+                    return new EmptyCommand();
                 }
             }
 
