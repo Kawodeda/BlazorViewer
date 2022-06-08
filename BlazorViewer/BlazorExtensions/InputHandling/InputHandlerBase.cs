@@ -60,6 +60,11 @@ namespace BlazorExtensions.InputHandling
             return HandleByDefault(() => Next?.OnWheel(e));
         }
 
+        public virtual ICommand OnKeyPress(KeyboardEventArgs e)
+        {
+            return HandleByDefault(() => Next?.OnKeyPress(e));
+        }
+
         public virtual ICommand OnKeyDown(KeyboardEventArgs e)
         {
             return HandleByDefault(() => Next?.OnKeyDown(e));
