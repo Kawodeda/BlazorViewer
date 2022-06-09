@@ -24,8 +24,6 @@ namespace BlazorExtensions.Strategies
             Console.WriteLine($"rgba({r},{g},{b},1.0)");
             await context.SetFillStyleAsync($"rgb({r},{g},{b})");
             await context.FillRectAsync(x, y, width, height);
-            //await context.SetFillStyleAsync("red");
-            //await context.FillRectAsync(10, 10, 200, 100);
             Console.WriteLine("Отрисовано");
         }
     }
