@@ -1,5 +1,6 @@
 ﻿using BlazorExtensions.Factories;
 using Aurigma.Design;
+using Aurigma.Design.Math;
 using Blazor.Extensions.Canvas.Canvas2D;
 
 namespace BlazorExtensions
@@ -17,7 +18,7 @@ namespace BlazorExtensions
             this.surfaceIndex = surfaceIndex;
         }
 
-        public async Task Render()
+        public async Task Render(Affine2DMatrix basis)
         {
             foreach(Layer layer in design.Surfaces[surfaceIndex].Layers)
             {
@@ -25,13 +26,38 @@ namespace BlazorExtensions
                 Console.WriteLine(layer.Elements.Count);
                 foreach(Element element in layer.Elements)
                 {
+                    Affine2DMatrix transform = basis.Append(element.Transform); //умножение матриц(basis - слева, transform - справа)
+                    await context.SetTransformAsync(
+                        transform.M11,
+                        transform.M12,
+                        transform.M21,
+                        transform.M22,
+                        transform.D1,
+                        transform.D2);
+
                     Console.WriteLine("Element");
                     await ModelFactory.Build(element).Draw(context);
                 }
             }
+            await context.SetTransformAsync(
+                        basis.M11,
+                        basis.M12,
+                        basis.M21,
+                        basis.M22,
+                        basis.D1,
+                        basis.D2);
         }
-        public async Task RenderSelection(Element element)
+        public async Task RenderSelection(Element element, Affine2DMatrix basis)
         {
+            Affine2DMatrix transform = basis.Append(element.Transform); //умножение матриц(basis - слева, transform - справа)
+            await context.SetTransformAsync(
+                transform.M11,
+                transform.M12,
+                transform.M21,
+                transform.M22,
+                transform.D1,
+                transform.D2);
+
             var x = element.Position.X + element.Content.ClosedVector.Controls.Rectangle.Corner1.X;
             var y = element.Position.Y + element.Content.ClosedVector.Controls.Rectangle.Corner1.Y;
             var width = element.Content.ClosedVector.Controls.Rectangle.Corner2.X - element.Content.ClosedVector.Controls.Rectangle.Corner1.X;
@@ -50,7 +76,13 @@ namespace BlazorExtensions
             await context.SetLineWidthAsync(lineWidth);
             await context.StrokeRectAsync(x,y,width,height);
 
-            await context.SetFillStyleAsync("white");
+            await context.SetTransformAsync(
+                        basis.M11,
+                        basis.M12,
+                        basis.M21,
+                        basis.M22,
+                        basis.D1,
+                        basis.D2);
         }
     }
 }
