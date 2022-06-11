@@ -227,12 +227,6 @@
         ExecuteCommand(result);
     }
 
-    private void OnKeyPress(KeyboardEventArgs e)
-    {
-        ICommand result = _inputHandler.OnKeyPress(e);
-        ExecuteCommand(result);
-    }
-
     private void ExecuteCommand(ICommand command)
     {
         if(command.CanExecute())
