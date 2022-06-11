@@ -75,11 +75,6 @@ namespace BlazorExtensions.InputHandling
             return HandleByDefault(() => Next?.OnKeyUp(e));
         }
 
-        public virtual ICommand OnKeyPress(KeyboardEventArgs e)
-        {
-            return HandleByDefault(() => Next?.OnKeyPress(e));
-        }
-
         protected virtual ICommand HandleByDefault(Func<ICommand?> next) 
         {
             return next?.Invoke() ?? new EmptyCommand();
