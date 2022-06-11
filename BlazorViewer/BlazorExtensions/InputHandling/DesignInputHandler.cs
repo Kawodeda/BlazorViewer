@@ -1,5 +1,8 @@
 ﻿using Aurigma.Design;
+using Aurigma.Design.Appearance;
+using Aurigma.Design.Appearance.Color;
 using Aurigma.Design.Content.Controls;
+using Aurigma.Design.Content;
 using Aurigma.Design.Math;
 using BlazorExtensions.Commands;
 using BlazorExtensions.Commands.Parameters;
@@ -10,11 +13,51 @@ namespace BlazorExtensions.InputHandling
     public enum DesignState
     {
         Default = 0,
-        Translate = 1
+        Translate = 1,
+        ElementPlacing = 2
     }
 
     public class DesignInputHandler : InputHandlerBase
     {
+        private const string AddElementKeyCode = "KeyA";
+        private readonly Element DefaultElement = new Element()
+        {
+            Transform = Affine2DMatrix.CreateIdentity(),
+            Content = new ElementContent()
+            {
+                ClosedVector = new ClosedVector()
+                {
+                    Fill = new Brush()
+                    {
+                        Solid = new SolidBrush()
+                        {
+                            Color = new Color()
+                            {
+                                Process = new ProcessColor()
+                                {
+                                    Alpha = 255,
+                                    Rgb = new RgbColor()
+                                    {
+                                        R = 230,
+                                        G = 230,
+                                        B = 250
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    Controls = new ClosedVectorControls()
+                    {
+                        Rectangle = new RectangleControls()
+                        {
+                            Corner1 = new Point(0, 0),
+                            Corner2 = new Point(64, 64)
+                        }
+                    }
+                }
+            }
+        };
+
         private IDesignViewer _designViewer;
         private DesignState _state;
         private float _prevMouseX;
@@ -47,14 +90,22 @@ namespace BlazorExtensions.InputHandling
         }
 
         public override ICommand OnMouseDown(MouseEventArgs e)
-        {           
+        {
+            float mouseX = (float)e.OffsetX;
+            float mouseY = (float)e.OffsetY;
+
+            if (_state == DesignState.ElementPlacing)
+            {
+                _state = DesignState.Default;
+                Element element = new Element(DefaultElement);
+                element.Position = ViewportToSurface(
+                    new Point(mouseX, mouseY));
+                return new AddElementCommand(element);
+            }
             if (_designViewer.SelectedElement == null)
             {
                 return base.OnMouseDown(e);
             }
-
-            float mouseX = (float)e.OffsetX;
-            float mouseY = (float)e.OffsetY;
             if (IsWithinElement(_designViewer.SelectedElement, mouseX, mouseY)
                 == false)
             {
@@ -104,6 +155,22 @@ namespace BlazorExtensions.InputHandling
             return base.OnMouseUp(e);
         }
 
+        public override ICommand OnKeyPress(KeyboardEventArgs e)
+        {
+            if (_state != DesignState.Default)
+            {
+                return base.OnKeyPress(e);
+            }
+            if (e.Code != AddElementKeyCode)
+            {
+                return base.OnKeyPress(e);
+            }
+
+            _state = DesignState.ElementPlacing;
+
+            return new EmptyCommand();
+        }
+
         private bool IsWithinElement(Element element, float x, float y)
         {
             RectangleControls rectangle 
@@ -117,6 +184,15 @@ namespace BlazorExtensions.InputHandling
                 && x < corner2.X
                 && y > corner1.Y
                 && y < corner2.Y;
+        }
+
+        private Point ViewportToSurface(Point inViewport)
+        {
+            Affine2DMatrix transform = _designViewer.Transform;
+
+            return new Point(
+                inViewport.X / transform.M11 - transform.D1,
+                inViewport.Y / transform.M22 - transform.D2);
         }
     }
 }

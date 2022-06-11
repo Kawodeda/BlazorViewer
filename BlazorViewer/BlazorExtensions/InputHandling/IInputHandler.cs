@@ -29,5 +29,7 @@ namespace BlazorExtensions.InputHandling
         public ICommand OnKeyDown(KeyboardEventArgs e);
 
         public ICommand OnKeyUp(KeyboardEventArgs e);
+
+        public ICommand OnKeyPress(KeyboardEventArgs e);
     }
 }
