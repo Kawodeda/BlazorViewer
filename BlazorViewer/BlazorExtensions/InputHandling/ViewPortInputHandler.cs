@@ -18,6 +18,7 @@ namespace BlazorExtensions.InputHandling
         private ViewPortState _state;
         private float _prevMouseX;
         private float _prevMouseY;
+        private bool _blockOnClick;
 
         public ViewPortInputHandler(IViewport viewPort)
         {
@@ -27,8 +28,19 @@ namespace BlazorExtensions.InputHandling
 
         // Saves from IInputHandlingBuilder failure when it tries
         // to create an instance of ViewPortInputHandler
-        public ViewPortInputHandler(IViewer viewer)
+        public ViewPortInputHandler(IDesignViewer viewer)
             : this(viewer.Viewport) { }
+
+        public override ICommand OnClick(MouseEventArgs e)
+        {
+            if(_blockOnClick)
+            {
+                _blockOnClick = false;
+                return new EmptyCommand();
+            }
+
+            return HandleByDefault(() => Next?.OnClick(e));
+        }
 
         public override ICommand OnMouseDown(MouseEventArgs e)
         {
@@ -79,7 +91,7 @@ namespace BlazorExtensions.InputHandling
                     break;
 
                 default:
-                    ICommand? nextResult = Next?.OnMouseDown(e);
+                    ICommand? nextResult = Next?.OnMouseMove(e);
                     if (nextResult != null)
                     {
                         result = nextResult;
@@ -102,6 +114,11 @@ namespace BlazorExtensions.InputHandling
 
         public override ICommand OnMouseUp(MouseEventArgs e)
         {
+            if (_state != ViewPortState.Default)
+            {
+                _blockOnClick = true;
+            }
+
             _state = ViewPortState.Default;
 
             return HandleByDefault(() => Next?.OnMouseUp(e));
@@ -148,6 +165,8 @@ namespace BlazorExtensions.InputHandling
 
                         return result;
                     }
+
+                    return new EmptyCommand();
                 }
             }
 
@@ -178,6 +197,8 @@ namespace BlazorExtensions.InputHandling
 
                         return result;
                     }
+
+                    return new EmptyCommand();
                 }
             }
 
