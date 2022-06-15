@@ -26,7 +26,7 @@ namespace DesignUsageExample
                 Console.WriteLine("All designs:");
                 foreach (var d in designs)
                 {
-                    Console.WriteLine(d.ToJson());
+                    Console.WriteLine(d.Name);
                 }
 
                 Console.Write("\nName: ");
