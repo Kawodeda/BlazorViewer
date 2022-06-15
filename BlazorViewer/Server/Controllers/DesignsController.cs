@@ -1,6 +1,7 @@
-﻿using BlazorViewer.Server.Services;
-using BlazorViewer.Server.Dtos;
+﻿using BlazorViewer.Server.Dtos;
+using BlazorViewer.Server.Exceptions;
 using BlazorViewer.Server.Filters;
+using BlazorViewer.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlazorViewer.Server.Controllers
@@ -69,16 +70,39 @@ namespace BlazorViewer.Server.Controllers
             return Ok(designs);
         }
 
-        [HttpPost(Name = nameof(UploadDesign))]
+        [HttpPost(Name = nameof(UploadDesignAutoName))]
         [Produces(contentType: "application/json")]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(DesignDto))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<DesignDto> UploadDesign(IFormFile file)
+        public ActionResult<DesignDto> UploadDesignAutoName(IFormFile file)
         {
             Stream stream = file.OpenReadStream();
             DesignDto info = _storageService.UploadDesign(stream);
 
-            return CreatedAtAction(nameof(UploadDesign), info);
+            return CreatedAtAction(nameof(UploadDesignAutoName), info);
+        }
+
+        [HttpPost("{name}", Name = nameof(UploadDesign))]
+        [Produces(contentType: "application/json")]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(DesignDto))]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<DesignDto> UploadDesign([FromRoute] string name, IFormFile file)
+        {
+            try
+            {
+                Stream stream = file.OpenReadStream();
+                DesignDto info = _storageService.UploadDesign(stream, name);
+
+                return CreatedAtAction(nameof(UploadDesign), info);
+            }
+            catch(FileAlreadyExistException)
+            {
+                return Conflict(new FileErrorDto
+                {
+                    Name = name
+                });
+            }
         }
 
         [HttpPut("{name}", Name = nameof(UpdateDesign))]

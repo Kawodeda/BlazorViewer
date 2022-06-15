@@ -4,6 +4,7 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using Aurigma.Design;
 using BlazorViewer.Server.Dtos;
+using BlazorViewer.Server.Exceptions;
 using BlazorViewer.Server.Options;
 using BlazorViewer.Server.Services;
 using Google.Protobuf;
@@ -88,6 +89,89 @@ namespace ServerTests
             DesignDto actual = service.UploadDesign(designStream);
 
             Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void For_UploadDesignName_Expect_FileContainingContentIsCreated()
+        {
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory(_options.Path);
+
+            var service = new DesignFileStorageService(
+                _wrappedOptions,
+                _nameGeneratorService,
+                fileSystem);
+
+            Design design = Design.CreateBlank();
+            Stream designStream = new MemoryStream(design.ToByteArray());
+            string name = "design";
+
+            service.UploadDesign(designStream, name);
+
+            string expectedFile = Path.Combine(
+                _options.Path,
+                $"{name}{_options.FileExtension}");
+
+            using (Stream input = fileSystem.File.OpenRead(expectedFile))
+            {
+                var expected = design;
+                Design actual = Design.Parser.ParseFrom(input);
+                Assert.AreEqual(expected, actual);
+            }
+        }
+
+        [Test]
+        public void For_UploadDesignName_Expect_ResultIsMetadataOfCreatedDesign()
+        {
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory(_options.Path);
+
+            var service = new DesignFileStorageService(
+                _wrappedOptions,
+                _nameGeneratorService,
+                fileSystem);
+
+            Design design = Design.CreateBlank();
+            Stream designStream = new MemoryStream(design.ToByteArray());
+            string name = "design";
+
+            var expected = new DesignDto
+            {
+                Name = name
+            };
+
+            DesignDto actual = service.UploadDesign(designStream, name);
+
+            Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public void When_UseUploadDesignNameWithExistingName_Expect_FileAlreadyExistException()
+        {
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory(_options.Path);
+
+            string filename = "design";
+            string path = fileSystem.Path
+                .Combine(_options.Path, $"{filename}{_options.FileExtension}");
+
+            Design design = Design.CreateBlank();
+            using (Stream output = fileSystem.File.Create(path))
+            {
+                design.WriteTo(output);
+            }
+
+            var service = new DesignFileStorageService(
+                _wrappedOptions,
+                _nameGeneratorService,
+                fileSystem);
+
+            Stream designStream = new MemoryStream(design.ToByteArray());
+            string existingName = filename;
+
+            Assert.Throws(
+                typeof(FileAlreadyExistException),
+                () => service.UploadDesign(designStream, existingName));
         }
 
         [Test]
