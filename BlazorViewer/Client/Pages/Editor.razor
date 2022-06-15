@@ -64,10 +64,12 @@
             designStream.Position = 0;
             var designFile = new FileParameter(designStream);
 
+            DesignDto result;
+
             if(string.IsNullOrEmpty(_saveDesignModel.Name))
             {
-                await _designsApiClient.UploadDesignAutoNameAsync(designFile);
-                _saveFormMessage = string.Format(SaveMessage, "");
+                result = await _designsApiClient.UploadDesignAutoNameAsync(designFile);
+                _saveFormMessage = string.Format(SaveMessage, result.Name);
                 return;
             }
 
@@ -75,13 +77,13 @@
             var designNames = designs.Select(x => x.Name);
             if (designNames.Contains(_saveDesignModel.Name))
             {
-                await _designsApiClient.UpdateDesignAsync(_saveDesignModel.Name, designFile);
-                _saveFormMessage = string.Format(UpdateMessage, _saveDesignModel.Name);
+                result = await _designsApiClient.UpdateDesignAsync(_saveDesignModel.Name, designFile);
+                _saveFormMessage = string.Format(UpdateMessage, result.Name);
                 return;
             }
 
-            await _designsApiClient.UploadDesignAsync(_saveDesignModel.Name, designFile);
-            _saveFormMessage = string.Format(SaveMessage, _saveDesignModel.Name);
+            result = await _designsApiClient.UploadDesignAsync(_saveDesignModel.Name, designFile);
+            _saveFormMessage = string.Format(SaveMessage, result.Name);
         }
         catch
         {
