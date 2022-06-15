@@ -26,8 +26,9 @@ namespace BlazorExtensions
                 Console.WriteLine(layer.Elements.Count);
                 foreach(Element element in layer.Elements)
                 {
-                    Affine2DMatrix transform = basis.Append(element.Transform); //умножение матриц(basis - слева, transform - справа)
-                    await context.SetTransformAsync(
+                    await context.SaveAsync();
+                    Affine2DMatrix transform = element.Transform;
+                    await context.TransformAsync(
                         transform.M11,
                         transform.M12,
                         transform.M21,
@@ -37,20 +38,17 @@ namespace BlazorExtensions
 
                     Console.WriteLine("Element");
                     await ModelFactory.Build(element).Draw(context);
+
+                    await context.RestoreAsync();
                 }
             }
-            await context.SetTransformAsync(
-                        basis.M11,
-                        basis.M12,
-                        basis.M21,
-                        basis.M22,
-                        basis.D1,
-                        basis.D2);
         }
         public async Task RenderSelection(Element element, Affine2DMatrix basis)
         {
-            Affine2DMatrix transform = basis.Append(element.Transform); //умножение матриц(basis - слева, transform - справа)
-            await context.SetTransformAsync(
+            await context.SaveAsync();
+            Affine2DMatrix transform = element.Transform;
+
+            await context.TransformAsync(
                 transform.M11,
                 transform.M12,
                 transform.M21,
@@ -76,13 +74,7 @@ namespace BlazorExtensions
             await context.SetLineWidthAsync(lineWidth);
             await context.StrokeRectAsync(x,y,width,height);
 
-            await context.SetTransformAsync(
-                        basis.M11,
-                        basis.M12,
-                        basis.M21,
-                        basis.M22,
-                        basis.D1,
-                        basis.D2);
+            await context.RestoreAsync();
         }
     }
 }
