@@ -10,5 +10,9 @@ namespace BlazorExtensions
         public Element? SelectedElement { get; set; }
 
         public Affine2DMatrix Transform { get; }
+
+        public Design Design { get; set; }
+
+        public int CurrentSurfaceIndex { get; set; }
     }
 }

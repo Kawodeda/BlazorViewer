@@ -101,29 +101,41 @@
         }
     }
 
+    public Design Design
+    {
+        get
+        {
+            return _design;
+        }
+        set
+        {
+            _design = value;
+            _viewport.ContentSize = CurrentArtboard.ActualSize;
+            _renderer.SetDesign(_design);
+            RequestRendering();
+        }
+    }
+
+    public int CurrentSurfaceIndex
+    {
+        get
+        {
+            return _currentSurfaceIndex;
+        }
+        set
+        {
+            _currentSurfaceIndex = value;
+            _viewport.ContentSize = CurrentArtboard.ActualSize;
+            RequestRendering();
+        }
+    }
+
     [JSInvokable]
     public async ValueTask ViewerRenderLoop(float timeStamp)
     {
         await RedrawCanvasAsync(timeStamp);
         await RedrawUiCanvasAsync(timeStamp);
 
-        RequestRendering();
-    }
-
-    public void SetDesign(Design design)
-    {
-        _design = design;
-        Viewport.ContentSize = CurrentArtboard.ActualSize;
-
-        _renderer.SetDesign(_design);
-
-        RequestRendering();
-    }
-
-    public void SetCurrentSurfaceIndex(int index)
-    {
-        _currentSurfaceIndex = index;
-        Viewport.ContentSize = CurrentArtboard.ActualSize;
         RequestRendering();
     }
 

@@ -6,6 +6,8 @@ namespace BlazorViewer.Server.Services
     {
         public DesignDto UploadDesign(Stream content);
 
+        public DesignDto UploadDesign(Stream content, string name);
+
         public DesignDto GetDesignInfo(string name);
 
         public Stream GetDesignContent(string name);

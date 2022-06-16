@@ -1,5 +1,6 @@
 ﻿using System.IO.Abstractions;
 using BlazorViewer.Server.Dtos;
+using BlazorViewer.Server.Exceptions;
 using BlazorViewer.Server.Options;
 using Microsoft.Extensions.Options;
 
@@ -29,13 +30,19 @@ namespace BlazorViewer.Server.Services
         public DesignDto UploadDesign(Stream content)
         {
             string filename = _nameGeneratorService.Generate("design");
-            string path = GetPath(filename);
+
+            return UploadDesign(content, filename);
+        }
+
+        public DesignDto UploadDesign(Stream content, string name)
+        {
+            string path = GetPath(name);
 
             CreateFile(path, content);
 
             return new DesignDto()
             {
-                Name = filename
+                Name = name
             };
         }
 
@@ -90,6 +97,11 @@ namespace BlazorViewer.Server.Services
 
         private void CreateFile(string path, Stream content)
         {
+            if (_fileSystem.File.Exists(path))
+            {
+                throw new FileAlreadyExistException();
+            }
+
             _fileSystem.Directory.CreateDirectory(_options.Path);
             using (Stream output = _fileSystem.File.Create(path))
             {
