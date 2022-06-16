@@ -14,5 +14,7 @@ namespace BlazorExtensions
         public Design Design { get; set; }
 
         public int CurrentSurfaceIndex { get; set; }
+
+        public void ChangeSelectedElementColor(string value);
     }
 }
