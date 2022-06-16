@@ -27,8 +27,6 @@ namespace BlazorExtensions
         {
             foreach(Layer layer in design.Surfaces[surfaceIndex].Layers)
             {
-                Console.WriteLine("Layer");
-                Console.WriteLine(layer.Elements.Count);
                 foreach(Element element in layer.Elements)
                 {
                     await context.SaveAsync();
@@ -41,7 +39,6 @@ namespace BlazorExtensions
                         transform.D1,
                         transform.D2);
 
-                    Console.WriteLine("Element");
                     await ModelFactory.Build(element).Draw(context);
 
                     await context.RestoreAsync();

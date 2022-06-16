@@ -20,11 +20,8 @@ namespace BlazorExtensions.Strategies
             var b = element.Content.ClosedVector.Fill.Solid.Color.Process.Rgb.B;
             var a = element.Content.ClosedVector.Fill.Solid.Color.Process.Alpha;
 
-            Console.WriteLine($"{x} {y} {r} {g} {b}");
-            Console.WriteLine($"rgba({r},{g},{b},1.0)");
             await context.SetFillStyleAsync($"rgb({r},{g},{b})");
             await context.FillRectAsync(x, y, width, height);
-            Console.WriteLine("Отрисовано");
         }
     }
 }

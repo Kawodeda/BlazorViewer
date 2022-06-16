@@ -258,13 +258,7 @@
             transform.D2);
 
         await _outputCanvasContext.SetFillStyleAsync("lightgray");
-        await _outputCanvasContext.FillRectAsync(0, 0, size.Width, size.Height);
-
-        await _outputCanvasContext.SetFillStyleAsync("black");
-        await _outputCanvasContext.SetFontAsync("20px verdana");
-        await _outputCanvasContext.FillTextAsync($"scrollX: {Viewport.ScrollX.ToString("N2")}", 10, 30);
-        await _outputCanvasContext.FillTextAsync($"scrollY: {Viewport.ScrollY.ToString("N2")}", 10, 50);
-        await _outputCanvasContext.FillTextAsync($"zoom: {Viewport.Zoom.ToString("N2")}", 10, 70);      
+        await _outputCanvasContext.FillRectAsync(0, 0, size.Width, size.Height);    
 
         await _renderer.Render();     //отрисовываем дизайн
         
@@ -289,9 +283,13 @@
         }   
 
         await _uiCanvasContext.SetFillStyleAsync("black");
-        await _uiCanvasContext.SetFontAsync("20px verdana");
+        await _uiCanvasContext.SetFontAsync("10px verdana");
         var selected = SelectedElement?.Content.ClosedVector.Controls.ControlsCase;
-        await _uiCanvasContext.FillTextAsync($"SelectedElement: {selected}", 10, 60);
+        await _uiCanvasContext.FillTextAsync($"SelectedElement: {selected}", 5, 10);
+        
+        await _uiCanvasContext.FillTextAsync($"scrollX: {Viewport.ScrollX.ToString("N2")}", Width - 80, 10);
+        await _uiCanvasContext.FillTextAsync($"scrollY: {Viewport.ScrollY.ToString("N2")}", Width - 80, 30);
+        await _uiCanvasContext.FillTextAsync($"zoom: {Viewport.Zoom.ToString("N2")}", Width - 80, 50);   
     }
 
     private async Task RedrawVerticalScrollbarAsync()

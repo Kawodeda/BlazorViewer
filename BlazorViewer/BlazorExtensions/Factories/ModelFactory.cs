@@ -8,7 +8,6 @@ namespace BlazorExtensions.Factories
     {
         public static IElementDrawStrategy Build(Element element)
         {
-            Console.WriteLine("Build");
             switch (element.Content.ElementContentCase)
             {
                 case ElementContent.ElementContentOneofCase.ClosedVector:
@@ -16,7 +15,6 @@ namespace BlazorExtensions.Factories
                         switch (element.Content.ClosedVector.Controls.ControlsCase)
                         {
                             case Aurigma.Design.Content.Controls.ClosedVectorControls.ControlsOneofCase.Rectangle:
-                                Console.WriteLine("Стратегия прямоугольника");
                                 return new RectangleDrawStrategy(element);
                                 break;
                             default:
