@@ -110,8 +110,13 @@
         set
         {
             _design = value;
-            _viewport.ContentSize = CurrentArtboard.ActualSize;
-            _renderer.SetDesign(_design);
+            Viewport.ContentSize = CurrentArtboard.ActualSize;
+
+            if(_renderer != null)
+            {
+                _renderer.SetDesign(_design);
+            }
+
             RequestRendering();
         }
     }
@@ -125,7 +130,7 @@
         set
         {
             _currentSurfaceIndex = value;
-            _viewport.ContentSize = CurrentArtboard.ActualSize;
+            Viewport.ContentSize = CurrentArtboard.ActualSize;
             RequestRendering();
         }
     }
@@ -156,6 +161,7 @@
             _uiCanvasContext = await _uiCanvasReference.CreateCanvas2DAsync();
 
             _renderer = new Renderer(_outputCanvasContext, _design, _currentSurfaceIndex);
+            _renderer.SetDesign(_design);
 
             _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
                 "import", "./_content/BlazorExtensions/DesignViewer.razor.js");
