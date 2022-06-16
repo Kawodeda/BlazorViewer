@@ -1,4 +1,5 @@
 ﻿@page "/editor"
+@page "/editor/{DesignName}"
 @using Aurigma.Design
 @using Aurigma.Design.Math
 @using Aurigma.Design.Appearance
@@ -40,10 +41,12 @@
 </EditForm>
 
 @code {
+    [Parameter]
+    public string? DesignName { get; set; }
+                           
     private IDesignViewer _designViewer;
     private IDesignsApiClient _designsApiClient;
     private SaveDesignModel _saveDesignModel = new();
-    private DesignViewer _designViewer;
     private bool colorPickerOpened = false;
 
 
@@ -57,14 +60,37 @@
     {
         _designsApiClient = new DesignsApiClient("https://localhost:7091", new HttpClient());
 
-        string name = "aaaaa";
-        var response = await _designsApiClient.GetDesignContentAsync(name);
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(DesignName == null)
+        {
+            return;
+        }
+
+        var response = await _designsApiClient.GetDesignContentAsync(DesignName);
         Design design = Design.Parser.ParseFrom(response.Stream);
 
         _designViewer.Design = design;
         _designViewer.CurrentSurfaceIndex = 0;
 
-        base.OnInitialized();
+        _saveDesignModel.Name = DesignName;
+
+        await base.OnParametersSetAsync();
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(firstRender && DesignName == null)
+        {
+            Design design = Design.CreateBlank();
+            _designViewer.Design = design;
+            _designViewer.CurrentSurfaceIndex = 0;
+        }
+
+        base.OnAfterRender(firstRender);
     }
 
     private async Task HandleSaveDesignSubmitAsync()
@@ -84,7 +110,7 @@
                 _saveFormMessage = string.Format(SaveMessage, result.Name);
                 return;
             }
-
+            
             var designs = await _designsApiClient.ListDesignsAsync();
             var designNames = designs.Select(x => x.Name);
             if (designNames.Contains(_saveDesignModel.Name))
