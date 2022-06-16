@@ -39,6 +39,7 @@
     private Canvas2DContext _uiCanvasContext;
     private IJSObjectReference _module;
     private DotNetObjectReference<DesignViewer> _instanceRef;
+    private Renderer _renderer;
     private IInputHandlingBuilder _inputHandler;
     private IViewport _viewport;
 
@@ -89,14 +90,14 @@
         {
             Size size = CurrentArtboard.Size;
             Point shiftToCenter = new Point(
-                (Width - size.Width * _viewport.Zoom) / 2, 
-                (Height - size.Height * _viewport.Zoom) / 2);
-            Point scroll = new Point(_viewport.ScrollX, _viewport.ScrollY);
+                (Width - size.Width * Viewport.Zoom) / 2, 
+                (Height - size.Height * Viewport.Zoom) / 2);
+            Point scroll = new Point(Viewport.ScrollX, Viewport.ScrollY);
 
             return CurrentArtboard.Basis
                 .Translate(shiftToCenter)
                 .Translate(scroll)
-                .Scale(_viewport.Zoom);
+                .Scale(Viewport.Zoom);
         }
     }
 
@@ -112,14 +113,17 @@
     public void SetDesign(Design design)
     {
         _design = design;
-        _viewport.ContentSize = CurrentArtboard.ActualSize;
+        Viewport.ContentSize = CurrentArtboard.ActualSize;
+
+        _renderer.SetDesign(_design);
+
         RequestRendering();
     }
 
     public void SetCurrentSurfaceIndex(int index)
     {
         _currentSurfaceIndex = index;
-        _viewport.ContentSize = CurrentArtboard.ActualSize;
+        Viewport.ContentSize = CurrentArtboard.ActualSize;
         RequestRendering();
     }
 
@@ -138,6 +142,8 @@
         {
             _outputCanvasContext = await _canvasReference.CreateCanvas2DAsync();
             _uiCanvasContext = await _uiCanvasReference.CreateCanvas2DAsync();
+
+            _renderer = new Renderer(_outputCanvasContext, _design, _currentSurfaceIndex);
 
             _module = await JsRuntime.InvokeAsync<IJSObjectReference>(
                 "import", "./_content/BlazorExtensions/DesignViewer.razor.js");
@@ -244,21 +250,25 @@
         await _outputCanvasContext.ClearRectAsync(0, 0, Width, Height);
 
         await _outputCanvasContext.SetTransformAsync(
-        transform.M11,
-        transform.M12,
-        transform.M21,
-        transform.M22,
-        transform.D1,
-        transform.D2);      
+            transform.M11,
+            transform.M12,
+            transform.M21,
+            transform.M22,
+            transform.D1,
+            transform.D2);
 
         await _outputCanvasContext.SetFillStyleAsync("lightgray");
         await _outputCanvasContext.FillRectAsync(0, 0, size.Width, size.Height);
 
         await _outputCanvasContext.SetFillStyleAsync("black");
         await _outputCanvasContext.SetFontAsync("20px verdana");
-        await _outputCanvasContext.FillTextAsync($"scrollX: {_viewport.ScrollX.ToString("N2")}", 10, 30);
-        await _outputCanvasContext.FillTextAsync($"scrollY: {_viewport.ScrollY.ToString("N2")}", 10, 50);
-        await _outputCanvasContext.FillTextAsync($"zoom: {_viewport.Zoom.ToString("N2")}", 10, 70);      
+        await _outputCanvasContext.FillTextAsync($"scrollX: {Viewport.ScrollX.ToString("N2")}", 10, 30);
+        await _outputCanvasContext.FillTextAsync($"scrollY: {Viewport.ScrollY.ToString("N2")}", 10, 50);
+        await _outputCanvasContext.FillTextAsync($"zoom: {Viewport.Zoom.ToString("N2")}", 10, 70);      
+
+        await _renderer.Render();     //отрисовываем дизайн
+        
+        await _renderer.RenderSelection(SelectedElement);  //отрисовка выделения для выбранного элемента
     }
 
     private async Task RedrawUiCanvasAsync(float timeStamp)
@@ -269,11 +279,11 @@
         await _uiCanvasContext.SetStrokeStyleAsync("red");
         await _uiCanvasContext.StrokeRectAsync(0, 0, Width, Height);
 
-        if(_viewport.IsHorizontalScrollbarShown)
+        if(Viewport.IsHorizontalScrollbarShown)
         {
             await RedrawHorizontalScrollbarAsync();
         }
-        if(_viewport.IsVerticalScrollbarShown)
+        if(Viewport.IsVerticalScrollbarShown)
         {
             await RedrawVerticalScrollbarAsync();
         }   
@@ -286,39 +296,39 @@
 
     private async Task RedrawVerticalScrollbarAsync()
     {
-        float verticalScrollbarX = Width - _viewport.ScrollbarSize;
+        float verticalScrollbarX = Width - Viewport.ScrollbarSize;
 
         await _uiCanvasContext.SetFillStyleAsync("#F4D3FF");
         await _uiCanvasContext.FillRectAsync(
             verticalScrollbarX, 
             0, 
-            _viewport.ScrollbarSize, 
-            Height - _viewport.ScrollbarSize);
+            Viewport.ScrollbarSize, 
+            Height - Viewport.ScrollbarSize);
 
         await _uiCanvasContext.SetFillStyleAsync("#C182D6");
         await _uiCanvasContext.FillRectAsync(
             verticalScrollbarX,
-            _viewport.VerticalScrollbarBodyPos,
-            _viewport.ScrollbarSize,
-            _viewport.VerticalScrollbarBodyHeight);
+            Viewport.VerticalScrollbarBodyPos,
+            Viewport.ScrollbarSize,
+            Viewport.VerticalScrollbarBodyHeight);
     }
 
     private async Task RedrawHorizontalScrollbarAsync()
     {
-        float horizontalScrollbarY = Height - _viewport.ScrollbarSize;
+        float horizontalScrollbarY = Height - Viewport.ScrollbarSize;
 
         await _uiCanvasContext.SetFillStyleAsync("#F4D3FF");
         await _uiCanvasContext.FillRectAsync(
             0, 
             horizontalScrollbarY, 
-            Width - _viewport.ScrollbarSize, 
-            _viewport.ScrollbarSize);
+            Width - Viewport.ScrollbarSize, 
+            Viewport.ScrollbarSize);
 
         await _uiCanvasContext.SetFillStyleAsync("#C182D6");
         await _uiCanvasContext.FillRectAsync(
-            _viewport.HorizontalScrollbarBodyPos,
+            Viewport.HorizontalScrollbarBodyPos,
             horizontalScrollbarY,
-            _viewport.HorizontalScrollbarBodyWidth,
-            _viewport.ScrollbarSize);
+            Viewport.HorizontalScrollbarBodyWidth,
+            Viewport.ScrollbarSize);
     }
 }
