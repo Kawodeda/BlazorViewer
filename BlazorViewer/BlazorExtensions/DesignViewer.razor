@@ -114,6 +114,9 @@
     {
         _design = design;
         Viewport.ContentSize = CurrentArtboard.ActualSize;
+
+        _renderer.SetDesign(_design);
+
         RequestRendering();
     }
 
@@ -263,8 +266,8 @@
         await _outputCanvasContext.FillTextAsync($"scrollY: {Viewport.ScrollY.ToString("N2")}", 10, 50);
         await _outputCanvasContext.FillTextAsync($"zoom: {Viewport.Zoom.ToString("N2")}", 10, 70);      
 
-        await _renderer.Render(transform);     //отрисовываем дизайн
-        await _renderer.RenderSelection(_design.Surfaces[_currentSurfaceIndex].Layers[0].Elements[0], transform);  //отрисовка выделения для выбранного элемента
+        await _renderer.Render();     //отрисовываем дизайн
+        await _renderer.RenderSelection(SelectedElement);  //отрисовка выделения для выбранного элемента
     }
 
     private async Task RedrawUiCanvasAsync(float timeStamp)

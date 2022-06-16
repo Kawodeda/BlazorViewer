@@ -18,7 +18,12 @@ namespace BlazorExtensions
             this.surfaceIndex = surfaceIndex;
         }
 
-        public async Task Render(Affine2DMatrix basis)
+        public void SetDesign(Design design)
+        {
+            this.design = design;
+        }
+
+        public async Task Render()
         {
             foreach(Layer layer in design.Surfaces[surfaceIndex].Layers)
             {
@@ -43,7 +48,7 @@ namespace BlazorExtensions
                 }
             }
         }
-        public async Task RenderSelection(Element element, Affine2DMatrix basis)
+        public async Task RenderSelection(Element element)
         {
             await context.SaveAsync();
             Affine2DMatrix transform = element.Transform;
