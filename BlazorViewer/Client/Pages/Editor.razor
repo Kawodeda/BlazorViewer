@@ -3,15 +3,20 @@
 @using Aurigma.Design.Math
 @using ApiClient;
 @using BlazorExtensions
+@using BlazorColorPicker
 
 <PageTitle>Editor</PageTitle>
 
 <h1>Editor</h1>
 
+<button class="btn btn-primary" @onclick = "OpenColorPicker">Сhange color</button>
+<ColorPicker Title="ColorPicker" IsOpened="colorPickerOpened" Closed="CloseColorPicker"></ColorPicker>
+
 <DesignViewer Width="400" Height="400" ArtboardScrollMargin="@(new Sides(150))" @ref="_designViewer"></DesignViewer>
 
 @code {
     private DesignViewer _designViewer;
+    private bool colorPickerOpened = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -27,5 +32,18 @@
         Design design = Design.Parser.ParseFrom(response.Stream);
 
         _designViewer.SetDesign(design);
+    }
+
+    private void OpenColorPicker()
+    {
+        colorPickerOpened = true;
+    }
+
+    private void CloseColorPicker(string colorPickerValue)
+    {
+        if(_designViewer.SelectedElement != null)
+            _designViewer.ChangeSelectedElementColor(colorPickerValue);
+
+        colorPickerOpened = false;
     }
 }
