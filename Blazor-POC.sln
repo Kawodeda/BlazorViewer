@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiClient", "BlazorViewer\A
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ServerTests", "BlazorViewer\ServerTests\ServerTests.csproj", "{D463A9EC-813A-4A64-9AC4-B17BE24B3BA8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorExtensions", "BlazorViewer\BlazorExtensions\BlazorExtensions.csproj", "{AEAF3142-D39D-45E6-80A8-F3CB1D074938}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorExtensions", "BlazorViewer\BlazorExtensions\BlazorExtensions.csproj", "{AEAF3142-D39D-45E6-80A8-F3CB1D074938}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
