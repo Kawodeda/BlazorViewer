@@ -50,6 +50,9 @@ namespace BlazorExtensions
         }
         public async Task RenderSelection(Element element)
         {
+            if (element == null)
+                return;
+
             await context.SaveAsync();
             Affine2DMatrix transform = element.Transform;
 

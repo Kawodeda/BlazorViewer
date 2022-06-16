@@ -267,6 +267,7 @@
         await _outputCanvasContext.FillTextAsync($"zoom: {Viewport.Zoom.ToString("N2")}", 10, 70);      
 
         await _renderer.Render();     //отрисовываем дизайн
+        
         await _renderer.RenderSelection(SelectedElement);  //отрисовка выделения для выбранного элемента
     }
 
