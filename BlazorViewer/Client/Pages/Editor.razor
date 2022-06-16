@@ -1,7 +1,12 @@
 ﻿@page "/editor"
 @using Aurigma.Design
 @using Aurigma.Design.Math
+@using Aurigma.Design.Appearance
+@using Aurigma.Design.Content
+@using Aurigma.Design.Appearance.Color
+@using Aurigma.Design.Content.Controls
 @using ApiClient;
+@using BlazorColorPicker
 @using BlazorExtensions
 @using BlazorViewer.Client.Models
 @using Google.Protobuf
@@ -9,6 +14,10 @@
 <PageTitle>Editor</PageTitle>
 
 <h1>Editor</h1>
+
+<button class="btn btn-primary" @onclick = "OpenColorPicker">Сhange color</button>
+
+<ColorPicker Title="ColorPicker" IsOpened="colorPickerOpened" Closed="CloseColorPicker"></ColorPicker>
 
 <div style="width: 400px; height: 400px">
     <DesignViewer Width="400" Height="400" ArtboardScrollMargin="@(new Sides(150))" @ref="_designViewer"></DesignViewer>
@@ -34,6 +43,9 @@
     private IDesignViewer _designViewer;
     private IDesignsApiClient _designsApiClient;
     private SaveDesignModel _saveDesignModel = new();
+    private DesignViewer _designViewer;
+    private bool colorPickerOpened = false;
+
 
     private const string ErrorMessage = "An error has occured";
     private const string SaveMessage = "File \"{0}\" has been successfully saved";
@@ -94,5 +106,18 @@
     private void HandleSaveDesignInvalidSubmit()
     {
         _saveFormMessage = "";
+    }
+
+    private void OpenColorPicker()
+    {
+        colorPickerOpened = true;
+    }
+
+    private void CloseColorPicker(string colorPickerValue)
+    {
+        if(_designViewer.SelectedElement != null)
+            _designViewer.ChangeSelectedElementColor(colorPickerValue);
+
+        colorPickerOpened = false;
     }
 }
