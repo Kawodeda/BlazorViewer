@@ -329,4 +329,16 @@
             Viewport.HorizontalScrollbarBodyWidth,
             Viewport.ScrollbarSize);
     }
+
+    public void ChangeSelectedElementColor(string value)
+    {
+        System.Drawing.Color color = System.Drawing.ColorTranslator.FromHtml(value);
+        int r = Convert.ToInt16(color.R);
+        int g = Convert.ToInt16(color.G);
+        int b = Convert.ToInt16(color.B);
+
+        SelectedElement.Content.ClosedVector.Fill.Solid.Color.Process.Rgb.R = (uint)r;
+        SelectedElement.Content.ClosedVector.Fill.Solid.Color.Process.Rgb.G = (uint)g;
+        SelectedElement.Content.ClosedVector.Fill.Solid.Color.Process.Rgb.B = (uint)b;
+    }
 }
