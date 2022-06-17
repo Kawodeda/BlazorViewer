@@ -152,6 +152,41 @@ namespace Aurigma.Design.Math
                 .Translate(-center));
         }
 
+        public float GetDeterminant()
+        {
+            return M11 * M22 - M12 * M21;
+        }
+                   
+        public Affine2DMatrix Inverse()
+        {
+            float determinant = GetDeterminant();
+            var result = new Affine2DMatrix();
+
+            result.M11 = M22 / determinant;
+            result.M12 = -M12 / determinant;
+            result.D1 = (M12 * D2 - D1 * M22) / determinant;
+            result.M21 = -M21 / determinant;
+            result.M22 = M11 / determinant;
+            result.D2 = -(M11 * D2 - D1 * M21) / determinant;
+
+            return result;
+        }
+
+        public bool NearlyEquals(Affine2DMatrix other, float epsilon)
+        {
+            if (epsilon < 0.0f)
+            {
+                throw new ArgumentException("Received negative epsilon");
+            }
+
+            return M11.NearlyEquals(other.M11, epsilon)
+                && M12.NearlyEquals(other.M12, epsilon)
+                && M21.NearlyEquals(other.M21, epsilon)
+                && M22.NearlyEquals(other.M22, epsilon)
+                && D1.NearlyEquals(other.D1, epsilon)
+                && D2.NearlyEquals(other.D2, epsilon);
+        }
+
         // Makes a matrix the identity matrix when the parameterless
         // constructor is called
         partial void OnConstruction()
