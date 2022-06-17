@@ -75,10 +75,11 @@ namespace BlazorExtensions.InputHandling
             {
                 float mouseX = (float)e.OffsetX;
                 float mouseY = (float)e.OffsetY;
+                var mouse = new Point(mouseX, mouseY);
 
                 Element? element = _designViewer.CurrentSurface.Layers
                     .SelectMany(x => x.Elements)
-                    .FirstOrDefault(x => IsWithinElement(x, mouseX, mouseY));
+                    .FirstOrDefault(x => IsWithinElement(x, mouse));
 
                 if (element != _designViewer.SelectedElement)
                 {
@@ -93,20 +94,20 @@ namespace BlazorExtensions.InputHandling
         {
             float mouseX = (float)e.OffsetX;
             float mouseY = (float)e.OffsetY;
+            var mouse = new Point(mouseX, mouseY);
 
             if (_state == DesignState.ElementPlacing)
             {
                 _state = DesignState.Default;
                 Element element = new Element(DefaultElement);
-                element.Position = ViewportToSurface(
-                    new Point(mouseX, mouseY));
+                element.Position = ViewportToSurface(mouse);
                 return new AddElementCommand(element);
             }
             if (_designViewer.SelectedElement == null)
             {
                 return base.OnMouseDown(e);
             }
-            if (IsWithinElement(_designViewer.SelectedElement, mouseX, mouseY)
+            if (IsWithinElement(_designViewer.SelectedElement, mouse)
                 == false)
             {
                 return base.OnMouseDown(e);
@@ -131,9 +132,20 @@ namespace BlazorExtensions.InputHandling
 
                     float mouseX = (float)e.OffsetX;
                     float mouseY = (float)e.OffsetY;
+
+                    var transform = _designViewer.Transform;
+                    transform.D1 = 0f;
+                    transform.D2 = 0f;
+
+                    var elementTransform = _designViewer.SelectedElement.Transform;
+                    elementTransform.D1 = 0f;
+                    elementTransform.D2 = 0f;
+
                     var shift = new Point(
-                        (mouseX - _prevMouseX) / _designViewer.Transform.M11, 
-                        (mouseY - _prevMouseY) / _designViewer.Transform.M22);
+                        mouseX - _prevMouseX, 
+                        mouseY - _prevMouseY)
+                        * transform.Inverse()
+                        * elementTransform;
 
                     _prevMouseX = mouseX;
                     _prevMouseY = mouseY;
@@ -186,19 +198,20 @@ namespace BlazorExtensions.InputHandling
             return base.OnKeyDown(e);
         }
 
-        private bool IsWithinElement(Element element, float x, float y)
+        private bool IsWithinElement(Element element, Point point)
         {
             RectangleControls rectangle 
                 = element.Content.ClosedVector.Controls.Rectangle;
             Affine2DMatrix transform = _designViewer.Transform;
             Point elementPos = element.Position;
-            Point corner1 = (elementPos + rectangle.Corner1) * transform;
-            Point corner2 = (elementPos + rectangle.Corner2) * transform;
+            Point corner1 = elementPos + rectangle.Corner1;
+            Point corner2 = elementPos + rectangle.Corner2;
+            point *= element.Transform * transform.Inverse();               
 
-            return x > corner1.X
-                && x < corner2.X
-                && y > corner1.Y
-                && y < corner2.Y;
+            return point.X > corner1.X
+                && point.X < corner2.X
+                && point.Y > corner1.Y
+                && point.Y < corner2.Y;
         }
 
         private Point ViewportToSurface(Point inViewport)
