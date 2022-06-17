@@ -1,8 +1,5 @@
 ﻿using Aurigma.Design;
-using Aurigma.Design.Appearance;
-using Aurigma.Design.Appearance.Color;
 using Aurigma.Design.Content.Controls;
-using Aurigma.Design.Content;
 using Aurigma.Design.Math;
 using BlazorExtensions.Commands;
 using BlazorExtensions.Commands.Parameters;
@@ -19,47 +16,11 @@ namespace BlazorExtensions.InputHandling
 
     public class DesignInputHandler : InputHandlerBase
     {
-        private const string AddElementKeyCode = "KeyA";
-        private readonly Element DefaultElement = new Element()
-        {
-            Transform = Affine2DMatrix.CreateIdentity(),
-            Content = new ElementContent()
-            {
-                ClosedVector = new ClosedVector()
-                {
-                    Fill = new Brush()
-                    {
-                        Solid = new SolidBrush()
-                        {
-                            Color = new Color()
-                            {
-                                Process = new ProcessColor()
-                                {
-                                    Alpha = 255,
-                                    Rgb = new RgbColor()
-                                    {
-                                        R = 230,
-                                        G = 230,
-                                        B = 250
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    Controls = new ClosedVectorControls()
-                    {
-                        Rectangle = new RectangleControls()
-                        {
-                            Corner1 = new Point(0, 0),
-                            Corner2 = new Point(64, 64)
-                        }
-                    }
-                }
-            }
-        };
+        private const string AddElementKeyCode = "KeyA";        
 
         private IDesignViewer _designViewer;
         private DesignState _state;
+        private IElementCreator _elementCreator = new ElementCreator();
         private float _prevMouseX;
         private float _prevMouseY;
 
@@ -99,8 +60,8 @@ namespace BlazorExtensions.InputHandling
             if (_state == DesignState.ElementPlacing)
             {
                 _state = DesignState.Default;
-                Element element = new Element(DefaultElement);
-                element.Position = ViewportToSurface(mouse);
+                Element element = _elementCreator.CreateRandomRectangle();
+                element.Position = ViewportToSurface(mouse, element);
                 return new AddElementCommand(element);
             }
             if (_designViewer.SelectedElement == null)
@@ -214,13 +175,17 @@ namespace BlazorExtensions.InputHandling
                 && point.Y < corner2.Y;
         }
 
-        private Point ViewportToSurface(Point inViewport)
+        private Point ViewportToSurface(Point inViewport, Element element)
         {
-            Affine2DMatrix transform = _designViewer.Transform;
+            var transform = _designViewer.Transform;
 
-            return new Point(
-                inViewport.X / transform.M11 - transform.D1,
-                inViewport.Y / transform.M22 - transform.D2);
+            var elementTransform = element.Transform;
+            elementTransform.D1 = 0f;
+            elementTransform.D2 = 0f;
+
+            return inViewport 
+                * transform.Inverse() 
+                * elementTransform;
         }
     }
 }

@@ -31,8 +31,8 @@ namespace Aurigma.Design
             };
             Size defaultSize = new Size()
             {
-                Width = 100f,
-                Height = 100f
+                Width = 200f,
+                Height = 200f
             };
             Brush defaultBrush = new Brush()
             {

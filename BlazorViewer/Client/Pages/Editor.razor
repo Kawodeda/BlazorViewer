@@ -19,8 +19,8 @@
 <button class="btn btn-primary" @onclick = "OpenColorPicker">Сhange color</button>
 <ColorPicker Title="ColorPicker" IsOpened="colorPickerOpened" Closed="CloseColorPicker"></ColorPicker>
 
-<div style="width: 400px; height: 400px">
-    <DesignViewer Width="400" Height="400" ArtboardScrollMargin="@(new Sides(150))" @ref="_designViewer"></DesignViewer>
+<div style="width: 700px; height: 480px">
+    <DesignViewer Width="700" Height="480" ArtboardScrollMargin="@(new Sides(150))" @ref="_designViewer"></DesignViewer>
 </div>
 
 <EditForm Model="@_saveDesignModel" 
