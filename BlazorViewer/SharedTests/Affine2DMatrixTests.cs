@@ -872,5 +872,125 @@ namespace SharedTests
 
             Assert.AreEqual(expected, actual);
         }
+
+        [Test]
+        public void For_GetDeterminant_Expect_ResultIsMatrixDeterminant()
+        {
+            //            14 -14 15
+            // matrix  =  9   10 20
+            //            0   0  1  
+            var matrix = new Affine2DMatrix()
+            {
+                M11 = 14f,
+                M12 = -14f,
+                M21 = 9f,
+                M22 = 10f,
+                D1 = 15f,
+                D2 = 20f
+            };
+
+            float expected = 266f;
+
+            float actual = matrix.GetDeterminant();
+
+            float epsilon = 0.00001f;
+            Assert.IsTrue(expected.NearlyEquals(actual, epsilon));
+        }
+
+        [Test]
+        public void For_Inverse_Expect_ResultIsInverseMatrix()
+        {
+            //            14 -14 15
+            // matrix  =  9   10 20
+            //            0   0  1  
+            var matrix = new Affine2DMatrix()
+            {
+                M11 = 14f,
+                M12 = -14f,
+                M21 = 9f,
+                M22 = 10f,
+                D1 = 15f,
+                D2 = 20f
+            };
+
+            //              5/133  1/19  (-82/133 - 1)
+            // expected  = -9/266  1/19 -145/266
+            //              0      0     1
+            var expected = new Affine2DMatrix()
+            {
+                M11 = 5f / 133f,
+                M12 = 1f / 19f,
+                M21 = -9f / 266f,
+                M22 = 1f / 19f,
+                D1 = -1f - 82f / 133f,
+                D2 = -145f / 266f
+            };
+
+            Affine2DMatrix actual = matrix.Inverse();
+
+            float epsilon = 0.00001f;
+            Assert.IsTrue(expected.NearlyEquals(actual, epsilon));
+        }
+
+        [Test]
+        public void When_MultiplyInverseMatrixByInitialMatrix_Expect_ResultIsIdentityMatrix()
+        {
+            //            14 -14 15
+            // matrix  =  9   10 20
+            //            0   0  1  
+            var matrix = new Affine2DMatrix()
+            {
+                M11 = 14f,
+                M12 = -14f,
+                M21 = 9f,
+                M22 = 10f,
+                D1 = 15f,
+                D2 = 20f
+            };
+
+            Affine2DMatrix inverse = matrix.Inverse();
+
+            Affine2DMatrix actual = matrix * inverse;
+
+            Affine2DMatrix expected = Affine2DMatrix.CreateIdentity();
+
+            float epsilon = 0.00001f;
+            Assert.IsTrue(expected.NearlyEquals(actual, epsilon));
+        }
+
+        [Test]
+        public void When_UseNearlyEqualsWithNegativeEpsilon_Expect_ArgumentExceptionIsThrown()
+        {
+            //             14 -14 15
+            // matrix1  =  9   10 20
+            //             0   0  1  
+            var matrix1 = new Affine2DMatrix()
+            {
+                M11 = 14f,
+                M12 = -14f,
+                M21 = 9f,
+                M22 = 10f,
+                D1 = 15f,
+                D2 = 20f
+            };
+
+            //             14 -14 15
+            // matrix2  =  9  ~10 20
+            //             0   0  1  
+            var matrix2 = new Affine2DMatrix()
+            {
+                M11 = 14f,
+                M12 = -14f,
+                M21 = 9f,
+                M22 = 9.999999f,
+                D1 = 15f,
+                D2 = 20f
+            };
+
+            float epsilon = -0.00001f;
+
+            Assert.Throws<ArgumentException>(
+                () => matrix1.NearlyEquals(matrix2, epsilon));
+        }
     }
 }

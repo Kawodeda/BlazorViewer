@@ -1,5 +1,4 @@
-﻿
-namespace Aurigma.Design.Math
+﻿namespace Aurigma.Design.Math
 {
     public sealed partial class Point
     {
@@ -94,15 +93,8 @@ namespace Aurigma.Design.Math
                 throw new ArgumentException("Received negative epsilon");
             }
 
-            return NearlyEqual(X, other.X, epsilon) 
-                && NearlyEqual(Y, other.Y, epsilon);
-        }
-
-        private static bool NearlyEqual(float a, float b, float epsilon)
-        {
-            float diff = MathF.Abs(a - b);
-
-            return diff < epsilon;
+            return X.NearlyEquals(other.X, epsilon) 
+                && Y.NearlyEquals(other.Y, epsilon);
         }
     }
 }
