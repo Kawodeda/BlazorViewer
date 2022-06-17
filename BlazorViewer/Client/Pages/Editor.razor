@@ -135,7 +135,8 @@
 
     private void OpenColorPicker()
     {
-        colorPickerOpened = true;
+        if(_designViewer.SelectedElement != null)
+            colorPickerOpened = true;
     }
 
     private void CloseColorPicker(string colorPickerValue)
